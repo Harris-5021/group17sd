@@ -6,10 +6,10 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 
-class Controller extends BaseController
+class TestController extends BaseController
 {
-    public function home()
+    public function test()
     {
-        return view('home');
+        return view('test');
     }
 }
