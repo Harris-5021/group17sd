@@ -1,26 +1,32 @@
 <?php
+
 namespace App\Models;
+
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
+    use Notifiable;
+
     protected $fillable = [
-        'email', 'password', 'first_name', 'last_name', 'user_type'
+        'name',
+        'email',
+        'password',
+        'role',
+        'last_login',
+        'notification_preferences'
     ];
 
     protected $hidden = [
-        'password'
+        'password',
     ];
 
-    public function loans() {
-        return $this->hasMany(Loan::class);
-    }
+    protected $casts = [
+        'notification_preferences' => 'array',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'last_login' => 'datetime'
+    ];
 
-    public function wishlist() {
-        return $this->hasMany(Wishlist::class);
-    }
-
-    public function subscription() {
-        return $this->hasOne(Subscription::class);
-    }
 }
