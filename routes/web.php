@@ -10,11 +10,20 @@ use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\ProcurementController;
 use App\Http\Controllers\LoginController;
 
-Route::get(uri: '/', action: [Controller::class, 'home'])->name(name: 'home');
-Route::get(uri: '/test', action: [TestController::class, 'test'])->name(name: 'test');
-Route::get('dashboard', [LoginController::class, 'dashboard']); 
+
+Route::get('/', [Controller::class, 'home'])->name('home');
+Route::get('/test', [TestController::class, 'test'])->name('test');
+
+// Auth routes
+Route::get('dashboard', [LoginController::class, 'dashboard'])->name('dashboard');
+
+// Login routes
 Route::get('login', [LoginController::class, 'index'])->name('login');
-Route::post('custom-login', [LoginController::class, 'customLogin'])->name('login.custom'); 
-Route::get('registration', [LoginController::class, 'registration'])->name('register-user');
-Route::post('custom-registration', [LoginController::class, 'customRegistration'])->name('register.custom'); 
+Route::post('login', [LoginController::class, 'customLogin'])->name('login.custom');
+
+// Registration routes
+Route::get('register', [LoginController::class, 'registration'])->name('register-user');
+Route::post('register', [LoginController::class, 'customRegistration'])->name('register.custom');
+
+// Logout route
 Route::get('signout', [LoginController::class, 'signOut'])->name('signout');

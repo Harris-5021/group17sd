@@ -75,3 +75,62 @@ main p {
   font-size: 1.2em;
   color: #333;
 }
+
+/* Login Page Styling */
+.login-form {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  background-color: #f5f5f5;
+}
+
+.card {
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  width: 100%;
+  max-width: 400px; /* Adjusted max width for better spacing */
+}
+
+.card-header {
+  background-color: #008080;
+  color: white;
+  padding: 15px;
+  font-size: 1.5em;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 8px 8px 0 0;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+.form-control {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 15px; /* Adds more space between input fields */
+}
+
+.btn {
+  background-color: #008080;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%; /* Makes button fill the form width */
+}
+
+.btn:hover {
+  background-color: #006666;
+}
+
+.text-danger {
+  color: red;
+}
