@@ -28,3 +28,5 @@ Route::post('register', [LoginController::class, 'customRegistration'])->name('r
 // Logout route
 Route::get('signout', [LoginController::class, 'signOut'])->name('signout');
 
+
+Route::get('/search', [MediaController::class, 'search'])->name('media.search');
