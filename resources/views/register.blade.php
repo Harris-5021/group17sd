@@ -24,7 +24,7 @@ class CustomAuthController extends Controller
 
 
 
-        ]);#test
+        ]);
    
     
         $credentials = $request->only('email', 'password');
