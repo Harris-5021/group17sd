@@ -8,9 +8,11 @@
 </head>
 <body>
     <header>
-        <div class="logo">
-            <img src="{{ asset('AML.png') }}" alt="AML Logo">
-        </div>
+        <a href="{{ route('home') }}">
+            <div class="logo">
+                <img src="{{ asset('AML.png') }}" alt="AML Logo">
+            </div>
+        </a>
         <div class="header-right">
             <nav>
                 <ul>
