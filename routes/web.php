@@ -9,13 +9,13 @@ use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\ProcurementController;
 use App\Http\Controllers\LoginController;
-
+use App\Http\Controllers\DashboardController;
 
 Route::get('/', [Controller::class, 'home'])->name('home');
 Route::get('/test', [TestController::class, 'test'])->name('test');
 
 // Auth routes
-Route::get('dashboard', [LoginController::class, 'dashboard'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
 // Login routes
 Route::get('login', [LoginController::class, 'index'])->name('login');
@@ -27,3 +27,4 @@ Route::post('register', [LoginController::class, 'customRegistration'])->name('r
 
 // Logout route
 Route::get('signout', [LoginController::class, 'signOut'])->name('signout');
+

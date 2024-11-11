@@ -1,39 +1,56 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Custom Auth in Laravel</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Dashboard - AML</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 </head>
-
 <body>
-
-    <nav class="navbar navbar-light navbar-expand-lg mb-5" style="background-color: #e3f2fd;">
-        <div class="container">
-            <a class="navbar-brand mr-auto" href="#">Kodsozluk</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    @guest
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('login') }}">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('register-user') }}">Register</a>
-                    </li>
-                    @else
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('signout') }}">Logout</a>
-                    </li>
-                    @endguest
+    <header>
+        <div class="logo">
+            <img src="{{ asset('AML.png') }}" alt="AML Logo">
+        </div>
+        <div class="header-right">
+            <nav>
+                <ul>
+                    <li><a href="{{ route('dashboard') }}">Dashboard</a></li>
+                    <li><a href="#">Browse Media</a></li>
+                    <li><a href="#">My Wishlist</a></li>
+                    <li><a href="#">My Borrowed Items</a></li>
+                    <li><a href="{{ route('signout') }}">Sign Out</a></li>
                 </ul>
+            </nav>
+            <div class="search">
+                <input type="text" placeholder="Search Media...">
+                <button>&#128269;</button>
             </div>
         </div>
-    </nav>
+    </header>
 
+    <main class="dashboard-container">
+        <h1>Welcome, {{ $user->name }}!</h1>
+        
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <h2>Quick Actions</h2>
+                <div class="action-buttons">
+                    <a href="#" class="action-btn">Browse Books</a>
+                    <a href="#" class="action-btn">View Wishlist</a>
+                    <a href="#" class="action-btn">Return Books</a>
+                </div>
+            </div>
 
+            <div class="dashboard-card">
+                <h2>Currently Borrowed</h2>
+                <p>You haven't borrowed any items yet.</p>
+            </div>
+
+            <div class="dashboard-card">
+                <h2>My Wishlist</h2>
+                <p>Your wishlist is empty.</p>
+            </div>
+        </div>
+    </main>
 </body>
-
 </html>
