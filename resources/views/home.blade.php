@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advanced Media Library - Your Gateway to Knowledge</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 </head>
 <body class="bg-gray-50">
     <!-- Accessibility Skip Link -->
@@ -19,8 +19,8 @@
             </div>
             <div class="hidden md:flex space-x-6">
                 <a href="{{ route('test') }}" class="hover:text-blue-200 transition-colors" aria-label="Search media">Search</a>
-                <a href="{{ route('test') }}" class="hover:text-blue-200 transition-colors" aria-label="Sign in to your account">Sign In</a>
-                <a href="{{ route('test') }}" class="hover:text-blue-200 transition-colors" aria-label="Register for a new account">Register</a>
+                <a href="{{ route('login') }}" class="hover:text-blue-200 transition-colors" aria-label="Sign in to your account">Sign In</a>
+                <a href="{{ route('register-user') }}" class="hover:text-blue-200 transition-colors" aria-label="Register for a new account">Register</a>
             </div>
             <button class="md:hidden p-2" aria-label="Toggle menu">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
