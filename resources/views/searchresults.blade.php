@@ -16,13 +16,13 @@
         <div class="header-right">
             <nav>
                 <ul>
-                    <li><a href="{{ route('dashboard') }}">Dashboard</a></li>
-                    <li><a href="{{ route('register-user') }}">Sign Up</a></li>
+                    <li><a href="{{ route('dashboard') }}">My Account Dashboard</a></li>
+                    <li><a href="{{ route('signout') }}">Sign Out</a></li>
                     <li><a href="{{ route('test') }}">Contact us</a></li>
                 </ul>
             </nav>
             <div class="search">
-                <form action="{{ route('media.search') }}" method="GET">
+                <form action="{{ route('search') }}" method="GET">
                     <input type="text" name="query" placeholder="Search Media..." value="{{ $query }}">
                     <button type="submit">&#128269;</button>
                 </form>
@@ -43,12 +43,26 @@
                         <p class="status">Status: {{ $item->status }}</p>
                         <p class="publication">Published: {{ $item->publication_year }}</p>
                         <p class="publisher">Publisher: {{ $item->publisher }}</p>
-                        <div class="actions">
-                            @if($item->status === 'available')
-                                <button class="borrow-btn">Borrow</button>
-                            @endif
-                            <button class="wishlist-btn">Add to Wishlist</button>
-                        </div>
+                      <!-- In searchresults.blade.php -->
+<div class="actions">
+    @if($item->status === 'available')
+        <form action="{{ route('borrow', $item->id) }}" method="POST">
+            @csrf
+            <select name="branch_id" required class="branch-select">
+                <option value="">Select Branch</option>
+                @foreach(DB::table('branches')->get() as $branch)
+                    <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                @endforeach
+            </select>
+            <button type="submit" class="borrow-btn">Borrow</button>
+        </form>
+    @endif
+    
+    <form action="{{ route('wishlist.add', $item->id) }}" method="POST">
+        @csrf
+        <button type="submit" class="wishlist-btn">Add to Wishlist</button>
+    </form>
+</div>
                     </div>
                 @endforeach
             </div>

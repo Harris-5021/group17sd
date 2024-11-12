@@ -9,143 +9,160 @@ use Illuminate\Support\Facades\Auth;
 
 class MediaController extends Controller
 {
-   public function __construct()
-   {
-       $this->middleware('auth');
-   }
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
 
-   // Show all media
-   public function index()
-   {
-       $media = Media::all();
-       return view('media.index', compact('media'));
-   }
+    // Browse/show all available media
+    public function browse()
+    {
+        $media = DB::table('media')
+            ->where('status', 'available')
+            ->paginate(12);
+            
+        return view('browse', compact('media'));
+    }
 
-   // Handle search
-   public function search(Request $request)
-   {
-       $query = $request->input('query');
-       
-       $media = DB::table('media')
-           ->where('title', 'LIKE', "%$query%")
-           ->orWhere('author', 'LIKE', "%$query%")
-           ->orWhere('description', 'LIKE', "%$query%")
-           ->get();
-   
-       return view('searchresults', [
-           'media' => $media,
-           'query' => $query
-       ]);
-   }
+    // Handle search
+    public function search(Request $request)
+    {
+        $query = $request->input('query');
+        
+        $media = DB::table('media')
+            ->where('title', 'LIKE', "%$query%")
+            ->orWhere('author', 'LIKE', "%$query%")
+            ->orWhere('description', 'LIKE', "%$query%")
+            ->get();
 
-   // Show single media details
-   public function show($id)
-   {
-       $media = Media::findOrFail($id);
-       return view('media.show', compact('media'));
-   }
+        return view('searchresults', [
+            'media' => $media,
+            'query' => $query
+        ]);
+    }
 
-   // Show borrowed media
-   public function borrowed()
-   {
-       $borrowedMedia = DB::table('media')
-           ->join('loans', 'media.id', '=', 'loans.media_id')
-           ->where('loans.user_id', Auth::id())
-           ->where('loans.status', 'active')
-           ->select('media.*', 'loans.due_date')
-           ->get();
-       
-       return view('media.borrowed', compact('borrowedMedia'));
-   }
+    // Show single media details
+    public function show($id)
+    {
+        $media = Media::findOrFail($id);
+        return view('show', compact('media'));
+    }
 
-   // Borrow media
-   public function borrow($id)
-   {
-       $media = Media::findOrFail($id);
-       
-       // Check if media is available
-       if($media->status !== 'available') {
-           return redirect()->back()->with('error', 'This item is not available for borrowing');
-       }
+    // Show borrowed media
+    public function borrowed()
+    {
+        $activeLoans = DB::table('loans')
+            ->join('media', 'loans.media_id', '=', 'media.id')
+            ->where('loans.user_id', Auth::id())
+            ->where('loans.status', 'active')
+            ->select('media.*', 'loans.borrowed_date', 'loans.due_date', 'loans.id as loan_id')
+            ->get();
+        
+        return view('borrowed', compact('activeLoans'));
+    }
 
-       // Create loan record
-       DB::table('loans')->insert([
-           'user_id' => Auth::id(),
-           'media_id' => $id,
-           'loan_date' => now(),
-           'due_date' => now()->addDays(14), // 2 weeks loan period
-           'status' => 'active',
-           'created_at' => now()
-       ]);
+    // Show wishlist
+    public function wishlist()
+    {
+        $wishlistItems = DB::table('wishlists')
+            ->join('media', 'wishlists.media_id', '=', 'media.id')
+            ->where('wishlists.user_id', Auth::id())
+            ->select('media.*')
+            ->get();
+            
+        return view('wishlist', compact('wishlistItems'));
+    }
 
-       // Update media status
-       $media->status = 'borrowed';
-       $media->save();
+    // Borrow media
+    public function borrow($id, Request $request)
+    {
+        $request->validate([
+            'branch_id' => 'required|exists:branches,id'
+        ]);
 
-       return redirect()->back()->with('success', 'Item borrowed successfully');
-   }
+        $media = Media::findOrFail($id);
+        
+        if($media->status !== 'available') {
+            return redirect()->back()->with('error', 'This item is not available for borrowing');
+        }
 
-   // Return media
-   public function return($id)
-   {
-       $loan = DB::table('loans')
-           ->where('media_id', $id)
-           ->where('user_id', Auth::id())
-           ->where('status', 'active')
-           ->first();
+        DB::table('loans')->insert([
+            'user_id' => Auth::id(),
+            'media_id' => $id,
+            'branch_id' => $request->branch_id,
+            'borrowed_date' => now(),
+            'due_date' => now()->addDays(14),
+            'returned_date' => null,
+            'status' => 'active'
+        ]);
 
-       if(!$loan) {
-           return redirect()->back()->with('error', 'Loan record not found');
-       }
+        $media->status = 'borrowed';
+        $media->save();
 
-       // Update loan record
-       DB::table('loans')
-           ->where('id', $loan->id)
-           ->update([
-               'status' => 'returned',
-               'return_date' => now(),
-               'updated_at' => now()
-           ]);
+        return redirect()->back()->with('success', 'Item borrowed successfully');
+    }
 
-       // Update media status
-       Media::where('id', $id)->update([
-           'status' => 'available'
-       ]);
+    // Return media
+    public function return($id)
+    {
+        // First find the loan
+        $loan = DB::table('loans')
+            ->where('id', $id)
+            ->where('user_id', Auth::id())
+            ->where('status', 'active')
+            ->first();
+    
+        if(!$loan) {
+            return redirect()->back()->with('error', 'Loan record not found');
+        }
+    
+        // Update loan status
+        DB::table('loans')
+            ->where('id', $id)
+            ->update([
+                'status' => 'returned',
+                'returned_date' => now()
+            ]);
+    
+        // Update media availability status
+        DB::table('media')
+            ->where('id', $loan->media_id)
+            ->update([
+                'status' => 'available'
+            ]);
+    
+        return redirect()->back()->with('success', 'Item returned successfully');
+    }
 
-       return redirect()->back()->with('success', 'Item returned successfully');
-   }
+    // Add to wishlist
+    public function addToWishlist($id)
+    {
+        $exists = DB::table('wishlists')
+            ->where('user_id', Auth::id())
+            ->where('media_id', $id)
+            ->exists();
 
-   // Add to wishlist
-   public function addToWishlist($id)
-   {
-       // Check if already in wishlist
-       $exists = DB::table('wishlists')
-           ->where('user_id', Auth::id())
-           ->where('media_id', $id)
-           ->exists();
+        if($exists) {
+            return redirect()->back()->with('error', 'Item already in wishlist');
+        }
 
-       if($exists) {
-           return redirect()->back()->with('error', 'Item already in wishlist');
-       }
+        DB::table('wishlists')->insert([
+            'user_id' => Auth::id(),
+            'media_id' => $id,
+            'created_at' => now()
+        ]);
 
-       // Add to wishlist
-       DB::table('wishlists')->insert([
-           'user_id' => Auth::id(),
-           'media_id' => $id,
-           'created_at' => now()
-       ]);
+        return redirect()->back()->with('success', 'Added to wishlist');
+    }
 
-       return redirect()->back()->with('success', 'Added to wishlist');
-   }
+    // Remove from wishlist
+    public function removeFromWishlist($id)
+    {
+        DB::table('wishlists')
+            ->where('user_id', Auth::id())
+            ->where('media_id', $id)
+            ->delete();
 
-   // Remove from wishlist
-   public function removeFromWishlist($id)
-   {
-       DB::table('wishlists')
-           ->where('user_id', Auth::id())
-           ->where('media_id', $id)
-           ->delete();
-
-       return redirect()->back()->with('success', 'Removed from wishlist');
-   }
+        return redirect()->back()->with('success', 'Removed from wishlist');
+    }
 }

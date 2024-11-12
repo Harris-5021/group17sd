@@ -269,3 +269,107 @@ h2 {
   color: #666;
   margin-top: 40px;
 }
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.actions form {
+  margin: 0;
+}
+
+.borrow-btn, .wishlist-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.borrow-btn {
+  background: #28a745;
+  color: white;
+}
+
+.wishlist-btn {
+  background: #ffc107;
+  color: #000;
+}
+
+.borrow-btn:hover {
+  background: #218838;
+}
+
+.wishlist-btn:hover {
+  background: #e0a800;
+}
+
+.branch-select {
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.actions form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.borrowed-items, .wishlist-items {
+  display: grid;
+  gap: 15px;
+}
+
+.borrowed-item, .wishlist-item {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.borrowed-item h3, .wishlist-item h3 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.borrowed-item p, .wishlist-item p {
+  margin: 5px 0;
+  color: #666;
+  font-size: 14px;
+}
+.alert {
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+}
+
+.alert-success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.return-btn {
+  width: 100%;
+  padding: 10px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.return-btn:hover {
+  background-color: #c82333;
+}

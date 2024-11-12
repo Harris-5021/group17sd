@@ -20,7 +20,7 @@
                 </ul>
             </nav>
             <div class="search">
-                <form action="{{ route('media.search') }}" method="GET" class="search">
+                <form action="{{ route('search') }}" method="GET" class="search">
                     <input type="text" name="query" placeholder="Search Media..." value="{{ request('query') }}">
                     <button type="submit">&#128269;</button>
                 </form>
