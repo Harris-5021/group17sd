@@ -55,9 +55,9 @@
                                 <div class="form-group mb-3">
                                     <input type="password" placeholder="Password" id="password" class="form-control" name="password" required>
                                     @if ($errors->has('password'))
-                                        <span class="text-danger">{{ $errors->first('password') }}</span>
-                                    @endif
-                                </div>
+                                <div class="text-danger mt-2">{{ $errors->first('password') }}</div>
+                             @endif
+                            </div>
 
                                 <!-- Submit button -->
                                 <div class="d-grid mx-auto">
