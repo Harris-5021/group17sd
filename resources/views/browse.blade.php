@@ -46,6 +46,7 @@
                 <div class="media-card-details" style="display: none;">
                     <p>Description: {{ $item->description ?? 'No description available.' }}</p>
                     <p>Additional Info: {{ $item->additional_info ?? 'N/A' }}</p>
+                    <p class="quantity">Copies available: {{ $item->quantity }}</p>
 
                     @if($item->status === 'available')
                         <form action="{{ route('borrow', $item->id) }}" method="POST" onsubmit="event.stopPropagation();">
