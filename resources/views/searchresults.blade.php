@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search Results - AML</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/accessibility-toolbar.css') }}">
 </head>
 <body>
     <header>
@@ -40,29 +41,25 @@
                         <h2>{{ $item->title }}</h2>
                         <p class="author">By {{ $item->author }}</p>
                         <p class="type">Type: {{ $item->type }}</p>
-                        <p class="status">Status: {{ $item->status }}</p>
                         <p class="publication">Published: {{ $item->publication_year }}</p>
                         <p class="publisher">Publisher: {{ $item->publisher }}</p>
-                      <!-- In searchresults.blade.php -->
-<div class="actions">
-    @if($item->status === 'available')
-        <form action="{{ route('borrow', $item->id) }}" method="POST">
-            @csrf
-            <select name="branch_id" required class="branch-select">
-                <option value="">Select Branch</option>
-                @foreach(DB::table('branches')->get() as $branch)
-                    <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-                @endforeach
-            </select>
-            <button type="submit" class="borrow-btn">Borrow</button>
-        </form>
-    @endif
-    
-    <form action="{{ route('wishlist.add', $item->id) }}" method="POST">
-        @csrf
-        <button type="submit" class="wishlist-btn">Add to Wishlist</button>
-    </form>
-</div>
+                        <p class="branch">Available at: {{ $item->branch_name }}</p>
+                        <p class="quantity">Copies available: {{ $item->quantity }}</p>
+
+                        <div class="actions">
+                            @if($item->quantity > 0)
+                                <form action="{{ route('borrow', $item->id) }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="branch_id" value="{{ $item->branch_id }}">
+                                    <button type="submit" class="borrow-btn">Borrow</button>
+                                </form>
+                            @endif
+                            
+                            <form action="{{ route('wishlist.add', $item->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="wishlist-btn">Add to Wishlist</button>
+                            </form>
+                        </div>
                     </div>
                 @endforeach
             </div>
@@ -70,5 +67,35 @@
             <p class="no-results">No results found for "{{ $query }}"</p>
         @endif
     </main>
+
+    <div class="accessibility-toolbar">
+        <button id="accessibilityToggle" class="toolbar-toggle">
+            <span class="icon">Aa</span>
+        </button>
+        
+        <div id="toolbarPanel" class="toolbar-panel hidden">
+            <h3>Accessibility Options</h3>
+            
+            <div class="toolbar-section">
+                <label>Text Size</label>
+                <div class="button-group">
+                    <button id="decreaseText">A-</button>
+                    <button id="increaseText">A+</button>
+                </div>
+            </div>
+
+            <div class="toolbar-section">
+                <label>Contrast</label>
+                <button id="toggleContrast">Toggle High Contrast</button>
+            </div>
+
+            <div class="toolbar-section">
+                <label>Text Weight</label>
+                <button id="toggleBold">Toggle Bold Text</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ asset('js/accessibility-toolbar.js') }}"></script>
 </body>
 </html>

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/accessibility-toolbar.css') }}">
 </head>
 <body>
     <header>
@@ -17,7 +18,7 @@
             <nav>
                 <ul>
                     <li><a href="{{ route('home') }}">Home</a></li>
-                    <li><a href="{{ route('register-user') }}">Sign Up</a></li>
+                    <li><a href="{{ route('login') }}">Login</a></li>
                     <li><a href="{{ route('test') }}">Contact us</a></li>
                 </ul>
             </nav>
@@ -69,5 +70,63 @@
             </div>
         </div>
     </main>
+    <!-- Add this HTML to your pages -->
+<div class="accessibility-toolbar">
+    <button id="accessibilityToggle" class="toolbar-toggle">
+        <span class="icon">Aa</span>
+    </button>
+    
+    <div id="toolbarPanel" class="toolbar-panel hidden">
+        <h3>Accessibility Options</h3>
+        
+        <div class="toolbar-section">
+            <label>Text Size</label>
+            <div class="button-group">
+                <button id="decreaseText">A-</button>
+                <button id="increaseText">A+</button>
+            </div>
+        </div>
+
+        <div class="toolbar-section">
+            <label>Contrast</label>
+            <button id="toggleContrast">Toggle High Contrast</button>
+        </div>
+
+        <div class="toolbar-section">
+            <label>Text Weight</label>
+            <button id="toggleBold">Toggle Bold Text</button>
+        </div>
+    </div>
+</div>
+
+<div class="accessibility-toolbar">
+    <button id="accessibilityToggle" class="toolbar-toggle">
+        <span class="icon">Aa</span>
+    </button>
+    
+    <div id="toolbarPanel" class="toolbar-panel hidden">
+        <h3>Accessibility Options</h3>
+        
+        <div class="toolbar-section">
+            <label>Text Size</label>
+            <div class="button-group">
+                <button id="decreaseText">A-</button>
+                <button id="increaseText">A+</button>
+            </div>
+        </div>
+
+        <div class="toolbar-section">
+            <label>Contrast</label>
+            <button id="toggleContrast">Toggle High Contrast</button>
+        </div>
+
+        <div class="toolbar-section">
+            <label>Text Weight</label>
+            <button id="toggleBold">Toggle Bold Text</button>
+        </div>
+    </div>
+</div>
+
+<script src="{{ asset('js/accessibility-toolbar.js') }}"></script>
 </body>
 </html>

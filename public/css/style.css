@@ -373,3 +373,33 @@ h2 {
 .return-btn:hover {
   background-color: #c82333;
 }
+
+.availability-info {
+  margin: 10px 0;
+  padding: 10px;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.quantity {
+  color: #008B8B;
+  font-weight: bold;
+}
+
+.not-available {
+  color: #ff4444;
+  font-style: italic;
+}
+
+.borrow-btn {
+  background: #008B8B;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.borrow-btn:hover {
+  background: #007777;
+}
