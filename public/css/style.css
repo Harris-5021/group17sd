@@ -225,10 +225,23 @@ h2 {
 }
 
 .media-card {
-  background: white;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: 1px solid #ddd;
+  padding: 16px;
+  margin-bottom: 16px;
+  cursor: pointer;
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.media-card:hover {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.media-card-details {
+  margin-top: 12px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  display: none;
 }
 
 .media-card h2 {

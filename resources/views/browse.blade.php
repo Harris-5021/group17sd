@@ -33,16 +33,22 @@
     </header>
 
     <main class="container">
-        <h1>Browse Media</h1>
-        <div class="media-grid">
-            @foreach($media as $item)
-                <div class="media-card">
-                    <h2>{{ $item->title }}</h2>
-                    <p>By {{ $item->author }}</p>
-                    <p>Type: {{ $item->type }}</p>
-                    <p>Published: {{ $item->publication_year }}</p>
+    <h1>Browse Media</h1>
+    <div class="media-grid">
+        @foreach($media as $item)
+            <div class="media-card" onclick="toggleDetails(event, this)">
+                <h2>{{ $item->title }}</h2>
+                <p>By {{ $item->author }}</p>
+                <p>Type: {{ $item->type }}</p>
+                <p>Published: {{ $item->publication_year }}</p>
+
+                <!-- Hidden extra details that will expand -->
+                <div class="media-card-details" style="display: none;">
+                    <p>Description: {{ $item->description ?? 'No description available.' }}</p>
+                    <p>Additional Info: {{ $item->additional_info ?? 'N/A' }}</p>
+
                     @if($item->status === 'available')
-                        <form action="{{ route('borrow', $item->id) }}" method="POST">
+                        <form action="{{ route('borrow', $item->id) }}" method="POST" onsubmit="event.stopPropagation();">
                             @csrf
                             <select name="branch_id" required class="branch-select">
                                 <option value="">Select Branch</option>
@@ -52,16 +58,38 @@
                             </select>
                             <button type="submit" class="borrow-btn">Borrow</button>
                         </form>
-                        <form action="{{ route('wishlist.add', $item->id) }}" method="POST">
+                        <form action="{{ route('wishlist.add', $item->id) }}" method="POST" onsubmit="event.stopPropagation();">
                             @csrf
                             <button type="submit" class="wishlist-btn">Add to Wishlist</button>
                         </form>
                     @endif
                 </div>
-            @endforeach
-        </div>
-        {{ $media->links() }}
-    </main>
+            </div>
+        @endforeach
+    </div>
+    {{ $media->links() }}
+</main>
+
+
+<script>
+   function toggleDetails(event, card) {
+        const details = card.querySelector('.media-card-details');
+        const isVisible = details.style.display === 'block';
+
+        // If the details are already visible and the click was on a button/form, stop propagation to prevent collapsing
+        if (isVisible && (event.target.closest('button') || event.target.closest('form'))) {
+            event.stopPropagation();
+            return; // Do nothing if the click is on a button or form when expanded
+        }
+
+        // Toggle visibility based on the current state
+        if (isVisible) {
+            details.style.display = 'none';  // Collapse the card
+        } else {
+            details.style.display = 'block'; // Expand the card
+        }
+    }
+</script>
     <!-- Add this HTML to your pages -->
 <div class="accessibility-toolbar">
     <button id="accessibilityToggle" class="toolbar-toggle">
