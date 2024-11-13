@@ -36,11 +36,11 @@ class LoginController extends Controller
                 case 'accountant':
                     return redirect()->route('dashboard.accountant')->withSuccess('Welcome, Accountant!');
                 case 'purchase_manager':
-                    return redirect()->route('purchase_manager.dashboard')->withSuccess('Welcome, Purchase Manager!');
+                    return redirect()->route('dashboard.purchase_manager')->withSuccess('Welcome, Purchase Manager!');
                 case 'branch_manager':
-                    return redirect()->route('branch_manager.dashboard')->withSuccess('Welcome, Branch Manager!');
+                    return redirect()->route('dashboard.branch_manager')->withSuccess('Welcome, Branch Manager!');
                 case 'librarian':
-                    return redirect()->route('librarian.dashboard')->withSuccess('Welcome, Librarian!');
+                    return redirect()->route('dashboard.librarian')->withSuccess('Welcome, Librarian!');
                 case 'member':
                     return redirect()->route('dashboard.member')->withSuccess('Welcome, Member!');
                 default:
