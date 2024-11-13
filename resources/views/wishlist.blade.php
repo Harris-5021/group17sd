@@ -17,7 +17,7 @@
         <div class="header-right">
             <nav>
                 <ul>
-                    <li><a href="{{ route('dashboard') }}">Dashboard</a></li>
+                    <li><a href="{{ route('dashboard.member') }}">Dashboard</a></li>
                     <li><a href="{{ route('browse') }}">Browse Media</a></li>
                     <li><a href="{{ route('wishlist') }}">My Wishlist</a></li>
                     <li><a href="{{ route('borrowed') }}">My Borrowed Items</a></li>

@@ -20,19 +20,40 @@ class LoginController extends Controller
     public function customLogin(Request $request)
     {
         $validator = $request->validate([
-            'email' => 'required',
-            'password' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|min:6',  // Add password validation rules
         ]);
 
         $credentials = $request->only('email', 'password');
+
+        // Check if credentials are valid
         if (Auth::attempt($credentials)) {
-            return redirect()->intended('dashboard')
-                        ->withSuccess('Signed in');
+            // After successful login, check the user's role and redirect accordingly
+            $user = Auth::user();
+            
+            // Redirect based on the user's role
+            switch ($user->role) {
+                case 'accountant':
+                    return redirect()->route('accountant.dashboard')->withSuccess('Welcome, Accountant!');
+                case 'purchase_manager':
+                    return redirect()->route('purchase_manager.dashboard')->withSuccess('Welcome, Purchase Manager!');
+                case 'branch_manager':
+                    return redirect()->route('branch_manager.dashboard')->withSuccess('Welcome, Branch Manager!');
+                case 'librarian':
+                    return redirect()->route('librarian.dashboard')->withSuccess('Welcome, Librarian!');
+                case 'member':
+                    return redirect()->route('dashboard.member')->withSuccess('Welcome, Member!');
+                default:
+                    // Redirect to a default dashboard if role does not match any above
+                    return redirect()->route('user.dashboard')->withSuccess('Welcome!');
+            }
         }
-        
+
+        // If login fails, add error message
         $validator['emailPassword'] = 'Email address or password is incorrect.';
         return redirect("login")->withErrors($validator);
     }
+
 
     // Show registration form
     public function registration()

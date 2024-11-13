@@ -25,7 +25,12 @@ Route::get('signout', [LoginController::class, 'signOut'])->name('signout');
 // Protected routes (require authentication)
 Route::middleware(['auth'])->group(function () {
     // Dashboard
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    //Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('accountant.dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('purchase_manager.dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('branch_manager.dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('librarian.dashboard');
+    Route::get('/dashboard/member', [DashboardController::class, 'index'])->name('dashboard.member');
     
     // Media routes
     Route::get('/search', [MediaController::class, 'search'])->name('search');
