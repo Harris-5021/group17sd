@@ -34,7 +34,7 @@ class LoginController extends Controller
             // Redirect based on the user's role
             switch ($user->role) {
                 case 'accountant':
-                    return redirect()->route('accountant.dashboard')->withSuccess('Welcome, Accountant!');
+                    return redirect()->route('dashboard.accountant')->withSuccess('Welcome, Accountant!');
                 case 'purchase_manager':
                     return redirect()->route('purchase_manager.dashboard')->withSuccess('Welcome, Purchase Manager!');
                 case 'branch_manager':
