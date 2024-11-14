@@ -33,6 +33,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/branch_manager', [DashboardController::class, 'index'])->name('dashboard.branch_manager');
     Route::get('/dashboard/librarian', [DashboardController::class, 'index'])->name('dashboard.librarian');
     Route::get('/dashboard/member', [DashboardController::class, 'index'])->name('dashboard.member');
+    Route::get('/accountant', [DashboardController::class, 'searchUser'])->name('searchUser');
+
     
     // Media routes
     Route::get('/search', [MediaController::class, 'search'])->name('search');
