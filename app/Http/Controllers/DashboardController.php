@@ -45,4 +45,26 @@ class DashboardController extends Controller
                // return view('dashboard.generic', compact('user', 'borrowedItems', 'wishlistItems'));
         }
     }
+
+    //search user
+    public function searchUser(Request $request)
+    {
+        $query = $request->input('query');
+        
+        $userAccount = DB::table('users')
+            ->select(
+                'users.*'
+            )
+            ->where(function($q) use ($query) {
+                $q->where('users.name', 'LIKE', "%$query%")
+                  ->orWhere('users.email', 'LIKE', "%$query%");
+                })
+            ->get();
+
+        return view('searchresultsAccountant', [
+            'users' => $userAccount,
+            'query' => $query
+        ]);
+    }
+
 }

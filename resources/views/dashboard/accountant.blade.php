@@ -40,11 +40,13 @@
     <main class="dashboard-container">
         <h1>Welcome, {{ $user->name }}!</h1>
         <div class="center">
-                <form action="{{ route('search') }}" method="GET" class="search" align: >
-                    <input type="text" name="query" placeholder="Search Media..." value="{{ request('query') }}">
+                <form action="{{ route('searchUser') }}" method="GET" class="searchUser" align: >
+                    <input type="text" name="query" placeholder="Search Users..." value="{{ request('query') }}">
                     <button type="submit">&#128269;</button>
                 </form>
         </div>
+
+
 </body>
 
 <footer>
