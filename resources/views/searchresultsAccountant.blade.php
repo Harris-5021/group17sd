@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/accessibility-toolbar.css') }}">
 </head>
-<body>
     <header>
         <div class="logo">
             <a href="{{ route('home') }}">
@@ -22,12 +21,19 @@
                     <li><a href="{{ route('test') }}">Contact us</a></li>
                 </ul>
             </nav>
-          <!--add search user function here-->
+          <!--add search user function -->
+          <main class="dashboard-container">
         </div>
     </header>
+<body>
 
-   
-
+    <div class="center">
+                <form action="{{ route('searchUser') }}" method="GET" class="searchUser" align: >
+                    <input type="text" name="query" placeholder="Search Users..." value="{{ request('query') }}">
+                    <button type="submit">&#128269;</button>
+                </form>
+        </div>
+</main>
     <div class="accessibility-toolbar">
         <button id="accessibilityToggle" class="toolbar-toggle">
             <span class="icon">Aa</span>

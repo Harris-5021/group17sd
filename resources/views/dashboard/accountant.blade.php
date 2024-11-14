@@ -12,13 +12,7 @@
   padding-top: 30px;
   color: Black;
 }
-.center 
-{
-  margin-left: 32%;
-  width: 50%;
-  padding: 10px;
-  
-}
+
 </style>
 </head>
 <body>
@@ -45,6 +39,7 @@
                     <button type="submit">&#128269;</button>
                 </form>
         </div>
+</main>
 
 
 </body>

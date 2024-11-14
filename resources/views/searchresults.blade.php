@@ -17,7 +17,7 @@
         <div class="header-right">
             <nav>
                 <ul>
-                    <li><a href="{{ route('dashboard') }}">My Account Dashboard</a></li>
+                    <li><a href="{{ route('dashboard.member') }}">My Account Dashboard</a></li>
                     <li><a href="{{ route('signout') }}">Sign Out</a></li>
                     <li><a href="{{ route('test') }}">Contact us</a></li>
                 </ul>
