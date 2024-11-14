@@ -10,6 +10,8 @@ use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\ProcurementController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\DashboardController;
+use App\Mail\NewMemberNotify;
+use Illuminate\Support\Facades\Mail;
 
 // Public routes
 Route::get('/', [Controller::class, 'home'])->name('home');
@@ -44,4 +46,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/media/{id}/return', [MediaController::class, 'return'])->name('return');
     Route::post('/media/{id}/wishlist', [MediaController::class, 'addToWishlist'])->name('wishlist.add');
     Route::delete('/media/{id}/wishlist', [MediaController::class, 'removeFromWishlist'])->name('wishlist.remove');
+});
+
+Route::get('/send-test-email', function () {
+    $testEmail = 'harrisfiaz3@gmail.com'; // Replace with your actual email
+    $userName = 'harris fiaz'; // Optional name for personalization
+    
+    // Send the email using the mailable
+    Mail::to($testEmail)->send(new NewMemberNotify($testEmail, $userName));
+    
+    return 'Test email sent to ' . $testEmail;
 });

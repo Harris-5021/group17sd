@@ -38,7 +38,7 @@ class MediaController extends Controller
         $media = DB::table('media')
             ->join('inventory', 'media.id', '=', 'inventory.media_id')
             ->join('branches', 'inventory.branch_id', '=', 'branches.id')
-            ->select(
+            ->select( 
                 'media.*', 
                 'inventory.quantity',
                 'inventory.branch_id',
