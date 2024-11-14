@@ -42,13 +42,16 @@
                                 <div class="form-group mb-3">
                                     <input type="password" placeholder="Password" id="password" class="form-control" name="password" required>
                                     @if ($errors->has('emailPassword'))
+                                    <div class="container">
                                     <span class="text-danger">{{ $errors->first('emailPassword') }}</span>
+                                    </div>
                                     @endif
                                 </div>
 
                               
 
                                 <div class="d-grid mx-auto">
+                                    
                                     <button type="submit" class="btn btn-dark btn-block">Signin</button>
                                 </div>
 

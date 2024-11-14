@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Wishlist - AML</title>
+    <title>Librarian Dashboard - AML</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/accessibility-toolbar.css') }}">
 </head>
@@ -17,7 +17,6 @@
         <div class="header-right">
             <nav>
                 <ul>
-                    <li><a href="{{ route('dashboard.member') }}">Dashboard</a></li>
                     <li><a href="{{ route('browse') }}">Browse Media</a></li>
                     <li><a href="{{ route('wishlist') }}">My Wishlist</a></li>
                     <li><a href="{{ route('borrowed') }}">My Borrowed Items</a></li>
@@ -25,29 +24,60 @@
                 </ul>
             </nav>
             <div class="search">
-                <form action="{{ route('search') }}" method="GET">
-                    <input type="text" name="query" placeholder="Search Media...">
+                <form action="{{ route('search') }}" method="GET" class="search">
+                    <input type="text" name="query" placeholder="Search Media..." value="{{ request('query') }}">
                     <button type="submit">&#128269;</button>
                 </form>
             </div>
         </div>
     </header>
 
-    <main class="container">
-        <h1>My Wishlist</h1>
-        <div class="media-grid">
-            @foreach($wishlistItems as $item)
-                <div class="media-card">
-                    <h2>{{ $item->title }}</h2>
-                    <p>By {{ $item->author }}</p>
-                    <p>Type: {{ $item->type }}</p>
-                    <form action="{{ route('wishlist.remove', $item->id) }}" method="POST">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="remove-btn">Remove from Wishlist</button>
-                    </form>
+    <main class="dashboard-container">
+        <h1>Welcome, {{ $user->name }}!</h1>
+        
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <h2>Quick Actions</h2>
+                <div class="action-buttons">
+                    <a href="{{ route('browse') }}" class="action-btn">Browse Books</a>
+                    <a href="{{ route('wishlist') }}" class="action-btn">View Wishlist</a>
+                    <a href="{{ route('borrowed') }}" class="action-btn">Return Books</a>  <!-- Changed from media.return -->
                 </div>
-            @endforeach
+            </div>
+
+            <div class="dashboard-card">
+                <h2>Currently Borrowed</h2>
+                @if($borrowedItems->count() > 0)
+                    <div class="borrowed-items">
+                        @foreach($borrowedItems as $item)
+                            <div class="borrowed-item">
+                                <h3>{{ $item->title }}</h3>
+                                <p>Author: {{ $item->author }}</p>
+                                <p>Borrowed: {{ \Carbon\Carbon::parse($item->borrowed_date)->format('d/m/Y') }}</p>
+                                <p>Due: {{ \Carbon\Carbon::parse($item->due_date)->format('d/m/Y') }}</p>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <p>You haven't borrowed any items yet.</p>
+                @endif
+            </div>
+            
+            <div class="dashboard-card">
+                <h2>My Wishlist</h2>
+                @if($wishlistItems->count() > 0)
+                    <div class="wishlist-items">
+                        @foreach($wishlistItems as $item)
+                            <div class="wishlist-item">
+                                <h3>{{ $item->title }}</h3>
+                                <p>By {{ $item->author }}</p>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <p>Your wishlist is empty.</p>
+                @endif
+            </div>
         </div>
     </main>
     <!-- Add this HTML to your pages -->

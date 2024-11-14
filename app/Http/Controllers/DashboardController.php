@@ -12,8 +12,8 @@ class DashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
-        
-        // Get borrowed books
+
+        // Get borrowed items (loans)
         $borrowedItems = DB::table('loans')
             ->join('media', 'loans.media_id', '=', 'media.id')
             ->where('loans.user_id', Auth::id())
@@ -28,6 +28,21 @@ class DashboardController extends Controller
             ->select('media.title', 'media.author')
             ->get();
 
-        return view('dashboard', compact('user', 'borrowedItems', 'wishlistItems'));
+        // Redirect to the appropriate dashboard based on user role
+        switch ($user->role) {
+            case 'accountant':
+                return view('dashboard.accountant', compact('user', 'borrowedItems', 'wishlistItems'));
+            case 'purchase_manager':
+                return view('dashboard.purchase_manager', compact('user', 'borrowedItems', 'wishlistItems'));
+            case 'branch_manager':
+                return view('dashboard.branch_manager', compact('user', 'borrowedItems', 'wishlistItems'));
+            case 'librarian':
+                return view('dashboard.librarian', compact('user', 'borrowedItems', 'wishlistItems'));
+            case 'member':
+                return view('dashboard.member', compact('user', 'borrowedItems', 'wishlistItems'));
+            //default:
+                // Redirect to a generic user dashboard if no role matches
+               // return view('dashboard.generic', compact('user', 'borrowedItems', 'wishlistItems'));
+        }
     }
 }
