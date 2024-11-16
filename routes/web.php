@@ -13,6 +13,7 @@ use App\Http\Controllers\DashboardController;
 use App\Mail\NewMemberNotify;
 use Illuminate\Support\Facades\Mail;
 
+
 // Public routes
 Route::get('/', [Controller::class, 'home'])->name('home');
 Route::get('/test', [TestController::class, 'test'])->name('test');
@@ -59,3 +60,5 @@ Route::get('/send-test-email', function () {
     
     return 'Test email sent to ' . $testEmail;
 });
+Route::get('/procurement/create', [DashboardController::class, 'showProcurementForm'])->name('procurement.create');
+Route::post('/procurement', [DashboardController::class, 'storeProcurement'])->name('procurement.store');
