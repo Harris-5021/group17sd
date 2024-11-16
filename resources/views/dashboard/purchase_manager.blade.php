@@ -46,24 +46,6 @@
             </div>
 
             <div class="dashboard-card">
-                <h2>Currently Borrowed</h2>
-                @if($borrowedItems->count() > 0)
-                    <div class="borrowed-items">
-                        @foreach($borrowedItems as $item)
-                            <div class="borrowed-item">
-                                <h3>{{ $item->title }}</h3>
-                                <p>Author: {{ $item->author }}</p>
-                                <p>Borrowed: {{ \Carbon\Carbon::parse($item->borrowed_date)->format('d/m/Y') }}</p>
-                                <p>Due: {{ \Carbon\Carbon::parse($item->due_date)->format('d/m/Y') }}</p>
-                            </div>
-                        @endforeach
-                    </div>
-                @else
-                    <p>You haven't borrowed any items yet.</p>
-                @endif
-            </div>
-            
-            <div class="dashboard-card">
                 <h2>My Wishlist</h2>
                 @if($wishlistItems->count() > 0)
                     <div class="wishlist-items">
@@ -79,26 +61,42 @@
                 @endif
             </div>
 
-            <!-- Procurement Section -->
             <div class="dashboard-card">
                 <h2>Procure New Media</h2>
                 <form action="{{ route('procurement.store') }}" method="POST">
                     @csrf
                     <div class="form-group">
-                        <label for="media_id">Select Media</label>
-                        <select name="media_id" id="media_id" required>
-                            <option value="">Select Media Item</option>
-                            
-                             <option value="Book">Book</option>
-                            
+                        <label for="media_type">Select Media Type</label>
+                        <select name="media_type" id="media_type" required>
+                            <option value="">Select Media Type</option>
+                            <option value="Book">Book</option>
+                            <option value="DVD">DVD</option>
+                            <option value="Magazine">Magazine</option>
+                            <option value="E-Book">E-Book</option>
+                            <option value="Audio">Audio</option>
                         </select>
                     </div>
-
+                
+                    <div class="form-group">
+                        <label for="title">Media Title</label>
+                        <input type="text" name="title" id="title" required>
+                    </div>
+                
+                    <div class="form-group">
+                        <label for="author">Author</label>
+                        <input type="text" name="author" id="author">
+                    </div>
+                
+                    <div class="form-group">
+                        <label for="publication_year">Publication Year</label>
+                        <input type="number" name="publication_year" id="publication_year" min="1000" max="{{ date('Y') }}">
+                    </div>
+                
                     <div class="form-group">
                         <label for="procurement_date">Procurement Date</label>
                         <input type="date" name="procurement_date" id="procurement_date" required>
                     </div>
-
+                
                     <div class="form-group">
                         <label for="procurement_type">Procurement Type</label>
                         <select name="procurement_type" id="procurement_type" required>
@@ -107,18 +105,17 @@
                             <option value="donation">Donation</option>
                         </select>
                     </div>
-
+                
                     <div class="form-group">
                         <label for="supplier_name">Supplier Name</label>
                         <input type="text" name="supplier_name" id="supplier_name" required>
                     </div>
-
+                
                     <div class="form-group">
                         <label for="procurement_cost">Procurement Cost</label>
                         <input type="number" step="0.01" name="procurement_cost" id="procurement_cost">
                     </div>
-
-
+                
                     <div class="form-group">
                         <label for="payment_status">Payment Status</label>
                         <select name="payment_status" id="payment_status" required>
@@ -127,10 +124,12 @@
                             <option value="overdue">Overdue</option>
                         </select>
                     </div>
-
+                
                     <button type="submit" class="btn-submit">Submit Procurement</button>
                 </form>
-            </div>
+                
+            
+            
         </div>
     </main>
 

@@ -29,4 +29,9 @@ class User extends Authenticatable
         'last_login' => 'datetime'
     ];
 
+    public function loans()
+    {
+        return $this->hasMany(Loan::class, 'user_id');
+    }
+
 }

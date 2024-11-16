@@ -36,7 +36,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/member', [DashboardController::class, 'index'])->name('dashboard.member');
     Route::get('/accountant', [DashboardController::class, 'searchUser'])->name('searchUser');
 
-    
+    Route::get('/purchase_manager', [DashboardController::class, 'showProcurementForm'])->name('purchase_manager.view');
+    Route::post('/procurement', [DashboardController::class, 'storeProcurement'])->name('procurement.store');
+
     // Media routes
     Route::get('/search', [MediaController::class, 'search'])->name('search');
     Route::get('/browse', [MediaController::class, 'browse'])->name('browse');
@@ -60,5 +62,4 @@ Route::get('/send-test-email', function () {
     
     return 'Test email sent to ' . $testEmail;
 });
-Route::get('/procurement/create', [DashboardController::class, 'showProcurementForm'])->name('procurement.create');
-Route::post('/procurement', [DashboardController::class, 'storeProcurement'])->name('procurement.store');
+

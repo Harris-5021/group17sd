@@ -8,21 +8,19 @@ use Illuminate\Database\Eloquent\Model;
 class Media extends Model
 {
     use HasFactory;
-    
+
     protected $table = 'media';
-    
+
     protected $fillable = [
         'title',
         'author',
         'type',
         'publication_year',
-        'publisher',
-        'description',
         'status',
+        'description',
         'damaged_notes',
-        'replacement_cost'
+        'replacement_cost',
     ];
-
-    // Since your table has created_at but no updated_at
     const UPDATED_AT = null;
+
 }

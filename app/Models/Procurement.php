@@ -8,14 +8,22 @@ use Illuminate\Database\Eloquent\Model;
 class Procurement extends Model
 {
     use HasFactory;
-    protected $table = 'dbo.procurements';
+
+    protected $table = 'procurements';
+
     protected $fillable = [
-         'procurement_date', 'procurement_type', 'supplier_name', 'procurement_cost',  'payment_status'
+        'media_id', // Reference to the media table
+        'procurement_date',
+        'procurement_type',
+        'supplier_name',
+        'procurement_cost',
+        'payment_status',
     ];
 
-    // Define the relationship with Media
     public function media()
     {
-        return $this->belongsTo(Media::class);
+        return $this->belongsTo(Media::class, 'media_id');
     }
 }
+
+
