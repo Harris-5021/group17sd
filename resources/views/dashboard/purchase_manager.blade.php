@@ -17,7 +17,7 @@
         <div class="header-right">
             <nav>
                 <ul>
-                    <li><a href="{{ route('browse') }}">Pocurement Management</a></li>
+                    <li><a href="{{ route('viewProcurements') }}">Procurement Management</a></li>
                     <li><a href="{{ route('signout') }}">Sign Out</a></li>
                 </ul>
             </nav>

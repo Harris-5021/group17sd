@@ -129,6 +129,13 @@ class DashboardController extends Controller
     // Redirect back with a success message
     return redirect()->route('purchase_manager.view')->with('success', 'Procurement record added successfully.');
 }
+public function viewProcurements()
+{
+    // Fetch all procurements from the database
+    $procurements = Procurement::with('media')->get(); // Including media details
+
+    return view('viewProcurements', compact('procurements'));
+}
 
 
 }
