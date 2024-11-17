@@ -18,6 +18,7 @@ class Procurement extends Model
         'supplier_name',
         'procurement_cost',
         'payment_status',
+        'branch_location',
     ];
 
     public function media()

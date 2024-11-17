@@ -91,6 +91,7 @@ class DashboardController extends Controller
 
     public function storeProcurement(Request $request)
 {
+    
     // Validate the procurement form data
     $request->validate([
         'media_type' => 'required|in:Book,DVD,Magazine,E-Book,Audio',
@@ -102,6 +103,7 @@ class DashboardController extends Controller
         'supplier_name' => 'required|string|max:255',
         'procurement_cost' => 'nullable|numeric|min:0',
         'payment_status' => 'required|in:pending,paid,overdue',
+        'branch_location' => 'required|string|max:255',
     ]);
 
     // Step 1: Insert into the media table
@@ -121,6 +123,7 @@ class DashboardController extends Controller
         'supplier_name' => $request->input('supplier_name'),
         'procurement_cost' => $request->input('procurement_cost'),
         'payment_status' => $request->input('payment_status'),
+        'branch_location' => $request->input('branch_location'),
     ]);
 
     // Redirect back with a success message

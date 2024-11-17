@@ -96,7 +96,16 @@
                             <option value="paid">Paid</option>
                             <option value="overdue">Overdue</option>
                         </select>
+                        <div class="form-group">
+                        <label for="branch_location">branch location</label>
+                        <select name="branch_location" id="branch_location" required>
+                                @foreach(DB::table('branches')->get() as $branch)
+                                    <option value="{{ $branch->name }}">{{ $branch->name }}</option>
+                                @endforeach
+                        </select>
+                        </div>
                     </div>
+                    
                 
                     <button type="submit" class="btn-submit">Submit Procurement</button>
                 </form>

@@ -21,6 +21,7 @@ class CreateProcurementsTable extends Migration
             $table->string('supplier_name');
             $table->decimal('procurement_cost', 10, 2);
             $table->string('payment_status');
+            $table->string('branch_location'); // New column for branch location
             $table->timestamps(); // This creates both created_at and updated_at columns
         });
     }
