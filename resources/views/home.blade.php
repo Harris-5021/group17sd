@@ -140,33 +140,50 @@
 </style>
 
 <script>
-// JavaScript to toggle the accessibility toolbar
 document.addEventListener('DOMContentLoaded', () => {
-    const toggleButton = document.querySelector('.toolbar-toggle');
-    const toolbarPanel = document.querySelector('.toolbar-panel');
+    // Grab elements
+    const toggleButton = document.querySelector('#accessibilityToggle');
+    const toolbarPanel = document.querySelector('#toolbarPanel');
+    const increaseTextButton = document.querySelector('#increaseText');
+    const decreaseTextButton = document.querySelector('#decreaseText');
+    const toggleContrastButton = document.querySelector('#toggleContrast');
+    const toggleBoldButton = document.querySelector('#toggleBold');
 
-    // Toggle the toolbar panel visibility
+    // Toggle toolbar visibility
     toggleButton.addEventListener('click', () => {
         toolbarPanel.classList.toggle('hidden');
     });
 
-    // Accessibility feature: High contrast mode toggle
-    const highContrastButton = document.createElement('button');
-    highContrastButton.innerText = 'Toggle High Contrast';
-    highContrastButton.style.marginTop = '10px'; // Styling for demonstration
-    toolbarPanel.appendChild(highContrastButton); // Add to the panel
+    // Default font size
+    let fontSize = 16; // Initial font size in pixels
 
-    highContrastButton.addEventListener('click', () => {
+    // Increase text size
+    increaseTextButton.addEventListener('click', () => {
+        fontSize += 2; // Increment font size
+        document.body.style.fontSize = `${fontSize}px`;
+    });
+
+    // Decrease text size
+    decreaseTextButton.addEventListener('click', () => {
+        fontSize = Math.max(10, fontSize - 2); // Prevent text from being too small
+        document.body.style.fontSize = `${fontSize}px`;
+    });
+
+    // Toggle high contrast mode
+    toggleContrastButton.addEventListener('click', () => {
         document.body.classList.toggle('high-contrast');
+    });
+
+    // Toggle bold text
+    toggleBoldButton.addEventListener('click', () => {
+        // Toggle between normal and bold font weight
+        document.body.style.fontWeight = 
+            document.body.style.fontWeight === 'bold' ? 'normal' : 'bold';
     });
 
     // Close toolbar when clicking outside of it
     document.addEventListener('click', (event) => {
-        if (
-            !toolbarPanel.contains(event.target) && 
-            !toggleButton.contains(event.target) &&
-            !toolbarPanel.classList.contains('hidden')
-        ) {
+        if (!toolbarPanel.contains(event.target) && !toggleButton.contains(event.target)) {
             toolbarPanel.classList.add('hidden');
         }
     });
