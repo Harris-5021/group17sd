@@ -35,7 +35,7 @@
         <p>AML is a library system containing...</p>
     </main>
     
-    <!-- Add this HTML to your pages -->
+  <!-- Accessibility Toolbar -->
 <div class="accessibility-toolbar">
     <button id="accessibilityToggle" class="toolbar-toggle">
         <span class="icon">Aa</span>
@@ -64,27 +64,6 @@
     </div>
 </div>
 
-<!-- Accessibility Bar -->
-<div class="accessibility-toolbar">
-    <button id="accessibilityToggle" class="toolbar-toggle">
-        <span class="icon">Aa</span>
-    </button>
-    
-    <div id="toolbarPanel" class="toolbar-panel hidden">
-        <h3>Accessibility Options</h3>
-        <div class="toolbar-section">
-            <label>Text Size</label>
-            <div class="button-group">
-                <button id="decreaseText">A-</button>
-                <button id="increaseText">A+</button>
-            </div>
-        </div>
-        <div class="toolbar-section">
-            <label>Contrast</label>
-            <button id="toggleContrast">Toggle High Contrast</button>
-        </div>
-    </div>
-</div>
 
 <style>
 /* Toolbar Styles */
@@ -161,44 +140,38 @@
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const toggle = document.getElementById('accessibilityToggle');
-    const panel = document.getElementById('toolbarPanel');
-    const increaseBtn = document.getElementById('increaseText');
-    const decreaseBtn = document.getElementById('decreaseText');
-    const contrastBtn = document.getElementById('toggleContrast');
-    
-    let currentSize = 100;
+// JavaScript to toggle the accessibility toolbar
+document.addEventListener('DOMContentLoaded', () => {
+    const toggleButton = document.querySelector('.toolbar-toggle');
+    const toolbarPanel = document.querySelector('.toolbar-panel');
 
-    toggle.addEventListener('click', () => {
-        panel.classList.toggle('hidden');
+    // Toggle the toolbar panel visibility
+    toggleButton.addEventListener('click', () => {
+        toolbarPanel.classList.toggle('hidden');
     });
 
-    increaseBtn.addEventListener('click', () => {
-        if (currentSize < 150) {
-            currentSize += 10;
-            document.body.style.zoom = currentSize + '%';
-        }
-    });
+    // Accessibility feature: High contrast mode toggle
+    const highContrastButton = document.createElement('button');
+    highContrastButton.innerText = 'Toggle High Contrast';
+    highContrastButton.style.marginTop = '10px'; // Styling for demonstration
+    toolbarPanel.appendChild(highContrastButton); // Add to the panel
 
-    decreaseBtn.addEventListener('click', () => {
-        if (currentSize > 70) {
-            currentSize -= 10;
-            document.body.style.zoom = currentSize + '%';
-        }
-    });
-
-    contrastBtn.addEventListener('click', () => {
+    highContrastButton.addEventListener('click', () => {
         document.body.classList.toggle('high-contrast');
     });
 
-    // Close panel when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!panel.contains(e.target) && !toggle.contains(e.target)) {
-            panel.classList.add('hidden');
+    // Close toolbar when clicking outside of it
+    document.addEventListener('click', (event) => {
+        if (
+            !toolbarPanel.contains(event.target) && 
+            !toggleButton.contains(event.target) &&
+            !toolbarPanel.classList.contains('hidden')
+        ) {
+            toolbarPanel.classList.add('hidden');
         }
     });
 });
+
 </script>
 </body>
 </html>

@@ -58,7 +58,7 @@ class LoginController extends Controller
     // Show registration form
     public function registration()
     {
-        return view('registration');  // This should point to your registration.blade.php
+        return view('registration');  // goes to registration
     }
 
     // Handle registration submission
