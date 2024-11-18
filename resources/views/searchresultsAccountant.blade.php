@@ -34,6 +34,26 @@
                 </form>
         </div>
 </main>
+
+<div class="search-results-container">
+<h1>Search Results for "{{ $query }}"</h1>
+
+@if($users->count() > 0)
+            <div class="media-grid">
+                @foreach($users as $item)
+                    <div class="media-card">
+                        <h2>{{ $item->name }}</h2>
+                        <p class="email">By {{ $item->email }}</p>
+                        @endforeach
+
+                @else
+            <p class="no-results">No results found for "{{ $query }}"</p>
+        @endif
+    </main>
+
+</div>
+</body>
+<footer>
     <div class="accessibility-toolbar">
         <button id="accessibilityToggle" class="toolbar-toggle">
             <span class="icon">Aa</span>
@@ -62,6 +82,5 @@
         </div>
     </div>
 
-    <script src="{{ asset('js/accessibility-toolbar.js') }}"></script>
-</body>
+</footer>
 </html>
