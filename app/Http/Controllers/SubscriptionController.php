@@ -15,4 +15,16 @@ class SubscriptionController extends Controller
     {
         return view('subscription');
     }
+
+    public function showUser($id)
+    {
+        $User = DB::table('subscriptions')
+        ->select('subscriptions.*')
+        ->where('user_id', $id)
+        ->get();
+
+
+    }
+
 }
+
