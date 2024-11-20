@@ -41,11 +41,32 @@
                     <h2>{{ $item->title }}</h2>
                     <p>By {{ $item->author }}</p>
                     <p>Type: {{ $item->type }}</p>
-                    <form action="{{ route('wishlist.remove', $item->id) }}" method="POST">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="remove-btn">Remove from Wishlist</button>
-                    </form>
+                    
+                    <div class="media-card">
+                        <h2>{{ $item->title }}</h2>
+                        <p>By {{ $item->author }}</p>
+                        <p>Type: {{ $item->type }}</p>
+                        
+                        <!-- Add branch selection and notify button -->
+                        <form action="{{ route('media.notify') }}" method="POST" class="notify-form">
+                            @csrf
+                            <input type="hidden" name="media_id" value="{{ $item->id }}">
+                            <select name="branch_id" required class="branch-select">
+                                <option value="">Select Branch</option>
+                                @foreach($branches as $branch)
+                                    <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                                @endforeach
+                            </select>
+                            <button type="submit" class="notify-btn">Notify Branch Manager</button>
+                        </form>
+                        
+                        <form action="{{ route('wishlist.remove', $item->id) }}" method="POST">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="remove-btn">Remove from Wishlist</button>
+                        </form>
+                    </div>
+                </div>
                 </div>
             @endforeach
         </div>

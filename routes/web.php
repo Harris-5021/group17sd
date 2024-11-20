@@ -43,7 +43,8 @@ Route::middleware(['auth'])->group(function () {
     //gets user id passed when form is submitted
     Route::get('/subscription/{id}', [SubscriptionController::Class, 'showUser']) -> name('subscription.showUser');
     
-
+    Route::post('/media/notify', [MediaController::class, 'notifyManager'])->name('media.notify');
+    Route::patch('/dashboard/notifications/{id}/toggle', [DashboardController::class, 'toggleNotification'])->name('notifications.toggle');
     // Media routes
     Route::get('/search', [MediaController::class, 'search'])->name('search');
     Route::get('/browse', [MediaController::class, 'browse'])->name('browse');

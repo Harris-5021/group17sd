@@ -113,7 +113,11 @@ class MediaController extends Controller
             )
             ->get();
             
-        return view('wishlist', compact('wishlistItems'));
+        $branches = DB::table('branches')
+            ->select('id', 'name')
+            ->get();
+            
+        return view('wishlist', compact('wishlistItems', 'branches'));
     }
 
     public function borrow($id, Request $request)
@@ -239,4 +243,43 @@ class MediaController extends Controller
 
         return redirect()->back()->with('success', 'Removed from wishlist');
     }
+
+    public function notifyManager(Request $request)
+{
+    // Validate the request
+    $request->validate([
+        'media_id' => 'required|exists:media,id',
+        'branch_id' => 'required|exists:branches,id',
+    ]);
+
+    try {
+        // Get the media details
+        $media = DB::table('media')
+            ->where('id', $request->media_id)
+            ->first();
+
+        // Get the branch manager's user ID
+        $branchManager = DB::table('branches')
+            ->where('id', $request->branch_id)
+            ->first();
+
+        if (!$branchManager || !$branchManager->manager_id) {
+            return back()->with('error', 'Branch manager not found.');
+        }
+
+        // Create the notification
+        DB::table('notifications')->insert([
+            'user_id' => $branchManager->manager_id,
+            'type' => 'procurement',
+            'title' => 'Media Request',
+            'message' => 'A user has requested the media "' . $media->title . '" to be added to your branch.',
+            'status' => 'unread',
+            'created_at' => now()
+        ]);
+
+        return back()->with('success', 'Branch manager has been notified about your request.');
+    } catch (\Exception $e) {
+        return back()->with('error', 'An error occurred while sending the notification.');
+    }
+}
 }
