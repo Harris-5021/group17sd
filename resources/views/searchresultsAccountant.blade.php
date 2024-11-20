@@ -42,8 +42,13 @@
             <div class="media-grid">
                 @foreach($users as $item)
                     <div class="media-card">
-                        <h2>{{ $item->name }}</h2>
-                        <p class="email">By {{ $item->email }}</p>
+                        <h2>User ID{{ $item->id}}</h2>
+                        <h3>{{ $item->name }}</h3>
+                        <p class="email"> Email: {{ $item->email }}</p>
+                        <form>
+                            <button> View more </button> 
+                        </form>
+                    </div>
                         @endforeach
 
                 @else
