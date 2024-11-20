@@ -44,7 +44,7 @@
                         <h2>User ID: {{ $item->id}}</h2>
                         <h3>{{ $item->name }}</h3>
                         <p class="email"> Email: {{ $item->email }}</p>
-                        <form method="GET" action="{{ route('subscription.showUser', $item->id) }}">
+                        <form method="GET" action="{{ route('subscription.showUser', ['id' => $item->id, 'name' => $item->name]) }}">
                         <button type = "submit"> View more </button> 
                         </form>
                     </div>

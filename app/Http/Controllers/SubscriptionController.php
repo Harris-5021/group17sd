@@ -17,15 +17,16 @@ class SubscriptionController extends Controller
         return view('subscription');
     }
 
-    public function showUser($id)
+    public function showUser($id, $name)
     {
+
         $UserSubscription = DB::table('subscriptions')
         ->select('subscriptions.*')
         ->where('user_id', $id)
         ->get();
 
         return view('subscription', 
-        ['subscriptions' => $UserSubscription]
+        ['subscriptions' => $UserSubscription, 'name' =>$name]
     );
 
     }

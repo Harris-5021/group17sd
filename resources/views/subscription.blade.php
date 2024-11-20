@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search Account results - AML</title>
+    <title>Subscription details - AML</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/accessibility-toolbar.css') }}">
 </head>
@@ -21,7 +21,25 @@
                     <li><a href="{{ route('test') }}">Contact us</a></li>
                 </ul>
             </nav>
-          <main class="dashboard-container">
         </div>
     </header>
-<body>
+    <body>
+<div>
+<h1>Subscription details for: "{{ $name }}"</h1>
+
+<table>
+    <td>Subscription ID</td>
+    <td>User ID</td>
+    <td>Plan Type</td>
+    <td>Amount</td>
+    <td>Status</td>
+    <td>Start Date</td>
+    <td>End Date</td>
+    <td>Next Billing Date</td>
+
+
+</table>
+
+</div>
+
+</body>
