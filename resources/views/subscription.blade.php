@@ -27,7 +27,8 @@
 <div>
 <h1>Subscription details for: "{{ $name }}"</h1>
 
-<table>
+<table>]
+<tr>
     <td>Subscription ID</td>
     <td>User ID</td>
     <td>Plan Type</td>
@@ -36,7 +37,13 @@
     <td>Start Date</td>
     <td>End Date</td>
     <td>Next Billing Date</td>
+</tr>
+<tr>
+    @foreach($subscriptions as $item)
+    <td>{{$item -> id}}</td>
 
+    @endforeach
+</tr>
 
 </table>
 
