@@ -21,7 +21,6 @@
                     <li><a href="{{ route('test') }}">Contact us</a></li>
                 </ul>
             </nav>
-          <!--add search user function -->
           <main class="dashboard-container">
         </div>
     </header>
@@ -42,11 +41,11 @@
             <div class="media-grid">
                 @foreach($users as $item)
                     <div class="media-card">
-                        <h2>User ID{{ $item->id}}</h2>
+                        <h2>User ID: {{ $item->id}}</h2>
                         <h3>{{ $item->name }}</h3>
                         <p class="email"> Email: {{ $item->email }}</p>
-                        <form>
-                            <button> View more </button> 
+                        <form method="GET" action="{{ route('subscription.showUser', $item->id) }}">
+                        <button type = "submit"> View more </button> 
                         </form>
                     </div>
                         @endforeach

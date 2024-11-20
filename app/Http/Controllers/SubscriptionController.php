@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 class SubscriptionController extends Controller 
 {
-    // Show login form
+    // Show subscription form
     public function index()
     {
         return view('subscription');
@@ -18,11 +19,14 @@ class SubscriptionController extends Controller
 
     public function showUser($id)
     {
-        $User = DB::table('subscriptions')
+        $UserSubscription = DB::table('subscriptions')
         ->select('subscriptions.*')
         ->where('user_id', $id)
         ->get();
 
+        return view('subscription', 
+        ['subscriptions' => $UserSubscription]
+    );
 
     }
 
