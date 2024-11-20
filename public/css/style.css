@@ -513,3 +513,29 @@ th {
   color: black !important;
   border: 2px solid white !important;
 }
+.notify-form {
+  margin: 10px 0;
+}
+
+.branch-select {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.notify-btn {
+  background-color: #4CAF50;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.notify-btn:hover {
+  background-color: #45a049;
+}

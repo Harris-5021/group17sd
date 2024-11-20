@@ -63,21 +63,139 @@
                 @endif
             </div>
             
-            <div class="dashboard-card">
-                <h2>My Wishlist</h2>
-                @if($wishlistItems->count() > 0)
-                    <div class="wishlist-items">
-                        @foreach($wishlistItems as $item)
-                            <div class="wishlist-item">
-                                <h3>{{ $item->title }}</h3>
-                                <p>By {{ $item->author }}</p>
+            <div class="dashboard-grid">
+                <!-- Your existing dashboard cards -->
+            
+                <!-- New Notifications Card -->
+                <div class="dashboard-card notifications-card">
+                    <h2>Notifications</h2>
+                    @if($notifications->count() > 0)
+                        <div class="notifications-container">
+                            <div class="notifications-header">
+                                <h3>Unread Messages</h3>
                             </div>
-                        @endforeach
-                    </div>
-                @else
-                    <p>Your wishlist is empty.</p>
-                @endif
+                            <div class="notifications-list">
+                                @foreach($notifications->where('status', 'unread') as $notification)
+                                    <div class="notification-item unread">
+                                        <div class="notification-content">
+                                            <h4>{{ $notification->title }}</h4>
+                                            <p>{{ $notification->message }}</p>
+                                            <small>{{ \Carbon\Carbon::parse($notification->created_at)->diffForHumans() }}</small>
+                                        </div>
+                                        <form action="{{ route('notifications.toggle', $notification->id) }}" method="POST" class="notification-actions">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="mark-read-btn">Mark as Read</button>
+                                        </form>
+                                    </div>
+                                @endforeach
+                            </div>
+            
+                            <div class="notifications-header">
+                                <h3>Read Messages</h3>
+                            </div>
+                            <div class="notifications-list">
+                                @foreach($notifications->where('status', 'read') as $notification)
+                                    <div class="notification-item read">
+                                        <div class="notification-content">
+                                            <h4>{{ $notification->title }}</h4>
+                                            <p>{{ $notification->message }}</p>
+                                            <small>{{ \Carbon\Carbon::parse($notification->created_at)->diffForHumans() }}</small>
+                                        </div>
+                                        <form action="{{ route('notifications.toggle', $notification->id) }}" method="POST" class="notification-actions">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="mark-unread-btn">Mark as Unread</button>
+                                        </form>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @else
+                        <p>No notifications to display.</p>
+                    @endif
+                </div>
             </div>
+            
+            <style>
+            .notifications-card {
+                grid-column: 1 / -1;
+            }
+            
+            .notifications-container {
+                max-height: 500px;
+                overflow-y: auto;
+            }
+            
+            .notifications-header {
+                background-color: #f5f5f5;
+                padding: 10px;
+                margin: 10px 0;
+            }
+            
+            .notification-item {
+                padding: 15px;
+                border-bottom: 1px solid #eee;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                transition: background-color 0.3s ease;
+            }
+            
+            .notification-item.unread {
+                background-color: #f0f7ff;
+                border-left: 4px solid #0066cc;
+            }
+            
+            .notification-item.read {
+                background-color: white;
+                opacity: 0.8;
+            }
+            
+            .notification-content {
+                flex-grow: 1;
+            }
+            
+            .notification-content h4 {
+                margin: 0 0 5px 0;
+                color: #333;
+            }
+            
+            .notification-content p {
+                margin: 0 0 5px 0;
+                color: #666;
+            }
+            
+            .notification-content small {
+                color: #999;
+            }
+            
+            .notification-actions {
+                margin-left: 15px;
+            }
+            
+            .mark-read-btn, .mark-unread-btn {
+                padding: 5px 10px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 0.9em;
+            }
+            
+            .mark-read-btn {
+                background-color: #4CAF50;
+                color: white;
+            }
+            
+            .mark-unread-btn {
+                background-color: #808080;
+                color: white;
+            }
+            
+            .mark-read-btn:hover, .mark-unread-btn:hover {
+                opacity: 0.9;
+            }
+            </style>
         </div>
     </main>
     <!-- Add this HTML to your pages -->

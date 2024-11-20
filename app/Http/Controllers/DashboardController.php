@@ -38,8 +38,14 @@ class DashboardController extends Controller
                 // Pass procurement form data for the purchase manager
                 $mediaItems = Media::all();
                 return view('dashboard.purchase_manager', compact('user', 'borrowedItems', 'wishlistItems', 'mediaItems'));
-            case 'branch_manager':
-                return view('dashboard.branch_manager', compact('user', 'borrowedItems', 'wishlistItems'));
+                case 'branch_manager':
+                    // Get notifications for the branch manager
+                    $notifications = DB::table('notifications')
+                        ->where('user_id', Auth::id())
+                        ->orderBy('created_at', 'desc')
+                        ->get();
+                
+                    return view('dashboard.branch_manager', compact('user', 'borrowedItems', 'wishlistItems', 'notifications'));
             case 'librarian':
                 return view('dashboard.librarian', compact('user', 'borrowedItems', 'wishlistItems'));
             case 'member':
@@ -137,5 +143,26 @@ public function viewProcurements()
     return view('viewProcurements', compact('procurements'));
 }
 
+public function toggleNotification($id)
+{
+    $notification = DB::table('notifications')
+        ->where('id', $id)
+        ->where('user_id', Auth::id())
+        ->first();
 
+    if (!$notification) {
+        return back()->with('error', 'Notification not found.');
+    }
+
+    $newStatus = $notification->status === 'read' ? 'unread' : 'read';
+
+    DB::table('notifications')
+        ->where('id', $id)
+        ->update([
+            'status' => $newStatus,
+            'read_at' => $newStatus === 'read' ? now() : null
+        ]);
+
+    return back()->with('success', 'Notification updated.');
+}
 }

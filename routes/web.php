@@ -40,7 +40,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/procurement', [DashboardController::class, 'storeProcurement'])->name('procurement.store');
     Route::get('/viewProcurements', [DashboardController::class, 'viewProcurements'])->name('viewProcurements');
     
-
+    Route::post('/media/notify', [MediaController::class, 'notifyManager'])->name('media.notify');
+    Route::patch('/dashboard/notifications/{id}/toggle', [DashboardController::class, 'toggleNotification'])->name('notifications.toggle');
     // Media routes
     Route::get('/search', [MediaController::class, 'search'])->name('search');
     Route::get('/browse', [MediaController::class, 'browse'])->name('browse');
