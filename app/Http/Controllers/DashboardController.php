@@ -34,10 +34,15 @@ class DashboardController extends Controller
         switch ($user->role) {
             case 'accountant':
                 return view('dashboard.accountant', compact('user', 'borrowedItems', 'wishlistItems'));
-            case 'purchase_manager':
-                // Pass procurement form data for the purchase manager
-                $mediaItems = Media::all();
-                return view('dashboard.purchase_manager', compact('user', 'borrowedItems', 'wishlistItems', 'mediaItems'));
+                case 'purchase_manager':
+                    // Pass procurement form data for the purchase manager
+                    $mediaItems = Media::all();
+                    $notifications = DB::table('notifications')
+                        ->where('user_id', Auth::id())
+                        ->orderBy('created_at', 'desc')
+                        ->get();
+                                         
+                    return view('dashboard.purchase_manager', compact('user', 'borrowedItems', 'wishlistItems', 'mediaItems', 'notifications'));
                 case 'branch_manager':
                     // Get notifications for the branch manager
                     $notifications = DB::table('notifications')
@@ -164,5 +169,136 @@ public function toggleNotification($id)
         ]);
 
     return back()->with('success', 'Notification updated.');
+}
+public function forwardToPurchaseManager($id, Request $request)
+{
+    $request->validate([
+        'media_type' => 'required|in:Book,DVD,Magazine,E-Book,Audio',
+        'quantity' => 'required|integer|min:1',
+        'supplier_name' => 'nullable|string',
+        'additional_notes' => 'nullable|string',
+        'estimated_cost' => 'nullable|numeric|min:0'
+    ]);
+
+    $notification = DB::table('notifications')->where('id', $id)->first();
+    $branch = DB::table('branches')->where('manager_id', Auth::id())->first();
+
+    if ($branch && $branch->purchase_manager_id) {
+        $messageData = [
+            'media_type' => $request->media_type,
+            'quantity' => $request->quantity,
+            'supplier_name' => $request->supplier_name,
+            'estimated_cost' => $request->estimated_cost,
+            'additional_notes' => $request->additional_notes,
+            'original_request' => $notification->message,
+            'branch_name' => $branch->name
+        ];
+
+        DB::table('notifications')->insert([
+            'user_id' => $branch->purchase_manager_id,
+            'type' => 'procurement',
+            'title' => 'Procurement Request',
+            'message' => json_encode($messageData),
+            'status' => 'unread',
+            'created_at' => now()
+        ]);
+
+        return back()->with('success', 'Request forwarded to purchase manager');
+    }
+
+    return back()->with('error', 'No purchase manager assigned to this branch');
+}
+
+public function showNotification($id)
+{
+    $notification = DB::table('notifications')
+        ->where('id', $id)
+        ->where('user_id', Auth::id())
+        ->first();
+
+    if (!$notification) {
+        return redirect()->back()->with('error', 'Notification not found.');
+    }
+
+    $message = $notification->message;
+    $details = [];
+
+    // Check if the message is JSON or a plain string
+    if ($this->isJson($message)) {
+        $details = json_decode($message, true);
+    } else {
+        // Parse legacy message format
+        preg_match('/Type: (.*?) Quantity:/', $message, $type);
+        preg_match('/Quantity: (.*?) Supplier:/', $message, $quantity);
+        preg_match('/Supplier: (.*?) Est\. Cost:/', $message, $supplier);
+        preg_match('/Est\. Cost: £(.*?) Notes:/', $message, $cost);
+        preg_match('/Notes: (.*?)$/', $message, $notes);
+
+        $details = [
+            'media_type' => trim($type[1] ?? 'N/A'),
+            'quantity' => trim($quantity[1] ?? 'N/A'),
+            'supplier_name' => trim($supplier[1] ?? 'N/A'),
+            'estimated_cost' => trim($cost[1] ?? 'N/A'),
+            'additional_notes' => trim($notes[1] ?? 'N/A')
+        ];
+    }
+
+    return view('notification.notification-details', compact('notification', 'details'));
+}
+
+private function isJson($string)
+{
+    json_decode($string);
+    return json_last_error() === JSON_ERROR_NONE;
+}
+
+public function acceptRequest($id)
+{
+    $originalNotification = DB::table('notifications')->find($id);
+    $branchManager = DB::table('users')
+        ->join('branches', 'users.id', '=', 'branches.manager_id')
+        ->where('branches.purchase_manager_id', Auth::id())
+        ->first();
+
+    $purchaseManager = DB::table('users')
+        ->where('id', Auth::id())
+        ->first();
+
+    // Create notification for branch manager
+    DB::table('notifications')->insert([
+        'user_id' => $branchManager->id,
+        'type' => 'procurement',
+        'title' => 'Procurement Request Accepted',
+        'message' => "Your procurement request has been accepted and will be processed. For follow-up, contact: {$purchaseManager->email}",
+        'status' => 'unread',
+        'created_at' => now()
+    ]);
+
+    return redirect()->route('dashboard.purchase_manager')->with('success', 'Response sent to branch manager');
+}
+
+public function rejectRequest($id)
+{
+    $originalNotification = DB::table('notifications')->find($id);
+    $branchManager = DB::table('users')
+        ->join('branches', 'users.id', '=', 'branches.manager_id')
+        ->where('branches.purchase_manager_id', Auth::id())
+        ->first();
+
+    $purchaseManager = DB::table('users')
+        ->where('id', Auth::id())
+        ->first();
+
+    // Create notification for branch manager
+    DB::table('notifications')->insert([
+        'user_id' => $branchManager->id,
+        'type' => 'procurement',
+        'title' => 'Procurement Request Rejected',
+        'message' => "Your procurement request could not be processed. Please email {$purchaseManager->email} to discuss further.",
+        'status' => 'unread',
+        'created_at' => now()
+    ]);
+
+    return redirect()->route('dashboard.purchase_manager')->with('success', 'Response sent to branch manager');
 }
 }

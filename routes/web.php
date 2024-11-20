@@ -42,6 +42,12 @@ Route::middleware(['auth'])->group(function () {
     
     Route::post('/media/notify', [MediaController::class, 'notifyManager'])->name('media.notify');
     Route::patch('/dashboard/notifications/{id}/toggle', [DashboardController::class, 'toggleNotification'])->name('notifications.toggle');
+    Route::post('/dashboard/notifications/{id}/forward', [DashboardController::class, 'forwardToPurchaseManager'])->name('notifications.forward');
+
+    Route::get('/notifications/{id}', [DashboardController::class, 'showNotification'])->name('notifications.show');
+    Route::post('/notifications/{id}/accept', [DashboardController::class, 'acceptRequest'])->name('notifications.accept');
+    Route::post('/notifications/{id}/reject', [DashboardController::class, 'rejectRequest'])->name('notifications.reject');
+
     // Media routes
     Route::get('/search', [MediaController::class, 'search'])->name('search');
     Route::get('/browse', [MediaController::class, 'browse'])->name('browse');

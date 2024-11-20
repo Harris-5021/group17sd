@@ -24,7 +24,7 @@
                 </ul>
             </nav>
             <div class="search">
-                <form action="{{ route('search') }}" method="GET" class="search">
+                <form action="{{ route('search') }}" method="GET">
                     <input type="text" name="query" placeholder="Search Media..." value="{{ request('query') }}">
                     <button type="submit">&#128269;</button>
                 </form>
@@ -41,7 +41,7 @@
                 <div class="action-buttons">
                     <a href="{{ route('browse') }}" class="action-btn">Browse Books</a>
                     <a href="{{ route('wishlist') }}" class="action-btn">View Wishlist</a>
-                    <a href="{{ route('borrowed') }}" class="action-btn">Return Books</a>  <!-- Changed from media.return -->
+                    <a href="{{ route('borrowed') }}" class="action-btn">Return Books</a>
                 </div>
             </div>
 
@@ -62,199 +62,192 @@
                     <p>You haven't borrowed any items yet.</p>
                 @endif
             </div>
-            
-            <div class="dashboard-grid">
-                <!-- Your existing dashboard cards -->
-            
-                <!-- New Notifications Card -->
-                <div class="dashboard-card notifications-card">
-                    <h2>Notifications</h2>
-                    @if($notifications->count() > 0)
-                        <div class="notifications-container">
-                            <div class="notifications-header">
-                                <h3>Unread Messages</h3>
-                            </div>
-                            <div class="notifications-list">
-                                @foreach($notifications->where('status', 'unread') as $notification)
+
+            <div class="dashboard-card notifications-card">
+                <h2>Notifications</h2>
+                @if($notifications->count() > 0)
+                    <div class="notifications-container">
+                        <div class="notifications-header">
+                            <h3>Unread Messages</h3>
+                        </div>
+                        <div class="notifications-list">
+                            @foreach($notifications as $notification)
+                                @if($notification->status === 'unread')
                                     <div class="notification-item unread">
                                         <div class="notification-content">
                                             <h4>{{ $notification->title }}</h4>
-                                            <p>{{ $notification->message }}</p>
                                             <small>{{ \Carbon\Carbon::parse($notification->created_at)->diffForHumans() }}</small>
                                         </div>
-                                        <form action="{{ route('notifications.toggle', $notification->id) }}" method="POST" class="notification-actions">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button type="submit" class="mark-read-btn">Mark as Read</button>
-                                        </form>
+                                        <div class="notification-actions">
+                                            <a href="{{ route('notifications.show', $notification->id) }}" class="view-btn">View Details</a>
+                                        </div>
                                     </div>
-                                @endforeach
-                            </div>
+                                @endif
+                            @endforeach
+                        </div>
             
-                            <div class="notifications-header">
-                                <h3>Read Messages</h3>
-                            </div>
-                            <div class="notifications-list">
-                                @foreach($notifications->where('status', 'read') as $notification)
+                        <div class="notifications-header">
+                            <h3>Read Messages</h3>
+                        </div>
+                        <div class="notifications-list">
+                            @foreach($notifications as $notification)
+                                @if($notification->status === 'read')
                                     <div class="notification-item read">
                                         <div class="notification-content">
                                             <h4>{{ $notification->title }}</h4>
-                                            <p>{{ $notification->message }}</p>
                                             <small>{{ \Carbon\Carbon::parse($notification->created_at)->diffForHumans() }}</small>
                                         </div>
-                                        <form action="{{ route('notifications.toggle', $notification->id) }}" method="POST" class="notification-actions">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button type="submit" class="mark-unread-btn">Mark as Unread</button>
-                                        </form>
+                                        <div class="notification-actions">
+                                            <a href="{{ route('notifications.show', $notification->id) }}" class="view-btn">View Details</a>
+                                        </div>
                                     </div>
-                                @endforeach
-                            </div>
+                                @endif
+                            @endforeach
                         </div>
-                    @else
-                        <p>No notifications to display.</p>
-                    @endif
-                </div>
+                    </div>
+                @else
+                    <p>No notifications to display.</p>
+                @endif
             </div>
-            
-            <style>
-            .notifications-card {
-                grid-column: 1 / -1;
-            }
-            
-            .notifications-container {
-                max-height: 500px;
-                overflow-y: auto;
-            }
-            
-            .notifications-header {
-                background-color: #f5f5f5;
-                padding: 10px;
-                margin: 10px 0;
-            }
-            
-            .notification-item {
-                padding: 15px;
-                border-bottom: 1px solid #eee;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                transition: background-color 0.3s ease;
-            }
-            
-            .notification-item.unread {
-                background-color: #f0f7ff;
-                border-left: 4px solid #0066cc;
-            }
-            
-            .notification-item.read {
-                background-color: white;
-                opacity: 0.8;
-            }
-            
-            .notification-content {
-                flex-grow: 1;
-            }
-            
-            .notification-content h4 {
-                margin: 0 0 5px 0;
-                color: #333;
-            }
-            
-            .notification-content p {
-                margin: 0 0 5px 0;
-                color: #666;
-            }
-            
-            .notification-content small {
-                color: #999;
-            }
-            
-            .notification-actions {
-                margin-left: 15px;
-            }
-            
-            .mark-read-btn, .mark-unread-btn {
-                padding: 5px 10px;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 0.9em;
-            }
-            
-            .mark-read-btn {
-                background-color: #4CAF50;
-                color: white;
-            }
-            
-            .mark-unread-btn {
-                background-color: #808080;
-                color: white;
-            }
-            
-            .mark-read-btn:hover, .mark-unread-btn:hover {
-                opacity: 0.9;
-            }
-            </style>
         </div>
     </main>
-    <!-- Add this HTML to your pages -->
-<div class="accessibility-toolbar">
-    <button id="accessibilityToggle" class="toolbar-toggle">
-        <span class="icon">Aa</span>
-    </button>
-    
-    <div id="toolbarPanel" class="toolbar-panel hidden">
-        <h3>Accessibility Options</h3>
+
+    <div class="accessibility-toolbar">
+        <button id="accessibilityToggle" class="toolbar-toggle">
+            <span class="icon">Aa</span>
+        </button>
         
-        <div class="toolbar-section">
-            <label>Text Size</label>
-            <div class="button-group">
-                <button id="decreaseText">A-</button>
-                <button id="increaseText">A+</button>
+        <div id="toolbarPanel" class="toolbar-panel hidden">
+            <h3>Accessibility Options</h3>
+            
+            <div class="toolbar-section">
+                <label>Text Size</label>
+                <div class="button-group">
+                    <button id="decreaseText">A-</button>
+                    <button id="increaseText">A+</button>
+                </div>
+            </div>
+
+            <div class="toolbar-section">
+                <label>Contrast</label>
+                <button id="toggleContrast">Toggle High Contrast</button>
+            </div>
+
+            <div class="toolbar-section">
+                <label>Text Weight</label>
+                <button id="toggleBold">Toggle Bold Text</button>
             </div>
         </div>
-
-        <div class="toolbar-section">
-            <label>Contrast</label>
-            <button id="toggleContrast">Toggle High Contrast</button>
-        </div>
-
-        <div class="toolbar-section">
-            <label>Text Weight</label>
-            <button id="toggleBold">Toggle Bold Text</button>
-        </div>
     </div>
-</div>
 
-<div class="accessibility-toolbar">
-    <button id="accessibilityToggle" class="toolbar-toggle">
-        <span class="icon">Aa</span>
-    </button>
-    
-    <div id="toolbarPanel" class="toolbar-panel hidden">
-        <h3>Accessibility Options</h3>
-        
-        <div class="toolbar-section">
-            <label>Text Size</label>
-            <div class="button-group">
-                <button id="decreaseText">A-</button>
-                <button id="increaseText">A+</button>
-            </div>
-        </div>
+    <style>
+    .notifications-card {
+        grid-column: 1 / -1;
+    }
 
-        <div class="toolbar-section">
-            <label>Contrast</label>
-            <button id="toggleContrast">Toggle High Contrast</button>
-        </div>
+    .notifications-container {
+        max-height: 500px;
+        overflow-y: auto;
+    }
 
-        <div class="toolbar-section">
-            <label>Text Weight</label>
-            <button id="toggleBold">Toggle Bold Text</button>
-        </div>
-    </div>
-</div>
+    .notifications-header {
+        background-color: #f5f5f5;
+        padding: 10px;
+        margin: 10px 0;
+    }
 
-<script src="{{ asset('js/accessibility-toolbar.js') }}"></script>
+    .notification-item {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        transition: background-color 0.3s ease;
+    }
+
+    .notification-item.unread {
+        background-color: #f0f7ff;
+        border-left: 4px solid #0066cc;
+    }
+
+    .notification-item.read {
+        background-color: white;
+        opacity: 0.8;
+    }
+
+    .notification-content {
+        flex-grow: 1;
+        margin-right: 20px;
+    }
+
+    .notification-content h4 {
+        margin: 0 0 5px 0;
+        color: #333;
+    }
+
+    .notification-content p {
+        margin: 0 0 5px 0;
+        color: #666;
+    }
+
+    .notification-content small {
+        color: #999;
+    }
+
+    .notification-actions {
+        min-width: 200px;
+    }
+
+    .procurement-form {
+        margin-top: 15px;
+        padding: 15px;
+        background: #f5f5f5;
+        border-radius: 4px;
+    }
+
+    .form-input, .form-select {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+
+    .mark-read-btn, .mark-unread-btn {
+        padding: 5px 10px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9em;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .mark-read-btn {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    .mark-unread-btn {
+        background-color: #808080;
+        color: white;
+    }
+
+    .forward-btn {
+        background-color: #0066cc;
+        color: white;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        width: 100%;
+    }
+
+    .mark-read-btn:hover, .mark-unread-btn:hover, .forward-btn:hover {
+        opacity: 0.9;
+    }
+    </style>
+
+    <script src="{{ asset('js/accessibility-toolbar.js') }}"></script>
 </body>
 </html>
