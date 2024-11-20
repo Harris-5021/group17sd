@@ -39,6 +39,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/purchase_manager', [DashboardController::class, 'showProcurementForm'])->name('purchase_manager.view');
     Route::post('/procurement', [DashboardController::class, 'storeProcurement'])->name('procurement.store');
     Route::get('/viewProcurements', [DashboardController::class, 'viewProcurements'])->name('viewProcurements');
+
+    //gets user id passed when form is submitted
+    Route::get('/subscription/{id}', [SubscriptionController::Class, 'showUser']) -> name('subscription.showUser');
     
 
     // Media routes
