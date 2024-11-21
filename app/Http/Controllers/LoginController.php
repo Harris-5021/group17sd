@@ -82,7 +82,7 @@ class LoginController extends Controller
 
         if($user) {
             Auth::login($user);
-            return redirect("dashboard")->withSuccess('Registration successful!');
+            return redirect("login")->withSuccess('Registration successful!');
         }
 
         return redirect()->back()->withErrors(['error' => 'Registration failed. Please try again.']);
