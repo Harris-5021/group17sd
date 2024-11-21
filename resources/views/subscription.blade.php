@@ -41,7 +41,14 @@
 <tr>
     @foreach($subscriptions as $item)
     <td>{{$item -> id}}</td>
-
+    <td>{{$item -> user_id}}</td>
+    <td>{{$item -> plan_type}}</td>
+    <td>{{$item -> amount}}</td>
+    <td>{{$item -> status}}</td>
+    <td>{{$item -> start_date}}</td>
+    <td>{{$item -> end_date}}</td>
+    <td>{{$item -> next_billing_date}}</td>
+    
     @endforeach
 </tr>
 
