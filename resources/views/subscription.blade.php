@@ -37,6 +37,7 @@
     <td>Start Date</td>
     <td>End Date</td>
     <td>Next Billing Date</td>
+    <td>Fee paid</td>
 </tr>
 <tr>
     @foreach($subscriptions as $item)
@@ -48,7 +49,11 @@
     <td>{{$item -> start_date}}</td>
     <td>{{$item -> end_date}}</td>
     <td>{{$item -> next_billing_date}}</td>
-    
+    @if ($item -> fee_paid == 1)
+        <td>Yes</td>
+    @else
+        <td>No</td>
+    @endif
     @endforeach
 </tr>
 
