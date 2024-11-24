@@ -93,9 +93,13 @@ class DashboardController extends Controller
             ->where('wishlists.user_id', $user->id)
             ->select('media.title', 'media.author')
             ->get();
+        $notifications = DB::table('notifications')
+        ->where('user_id', $user->id)
+        ->orderBy('created_at', 'desc')
+        ->get();
     
         // Pass variables to the view
-        return view('dashboard.purchase_manager', compact('mediaItems', 'user', 'wishlistItems'));
+        return view('dashboard.purchase_manager', compact('mediaItems', 'user', 'wishlistItems', 'notifications'));
     }
     
     
@@ -136,6 +140,7 @@ class DashboardController extends Controller
         'payment_status' => $request->input('payment_status'),
         'branch_location' => $request->input('branch_location'),
     ]);
+    
 
     // Redirect back with a success message
     return redirect()->route('purchase_manager.view')->with('success', 'Procurement record added successfully.');
@@ -145,7 +150,7 @@ public function viewProcurements()
     // Fetch all procurements from the database
     $procurements = Procurement::with('media')->get(); // Including media details
 
-    return view('viewProcurements', compact('procurements'));
+    return view('viewProcurements', compact('procurements',));
 }
 
 public function toggleNotification($id)
