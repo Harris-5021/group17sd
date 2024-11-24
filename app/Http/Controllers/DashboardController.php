@@ -124,6 +124,7 @@ class DashboardController extends Controller
         'procurement_cost' => 'nullable|numeric|min:0',
         'payment_status' => 'required|in:pending,paid,overdue',
         'branch_location' => 'required|string|max:255',
+        'quantity' => 'required|integer|min:1',
     ]);
 
     // Step 1: Insert into the media table
@@ -149,7 +150,7 @@ class DashboardController extends Controller
     Inventory::create([
         'media_id' => $media->id, // Use the ID of the newly created media
         'branch_id' => $branch->id,
-        'quantity' => 1,
+        'quantity' => $request->input('quantity'),
     ]);
     
 
