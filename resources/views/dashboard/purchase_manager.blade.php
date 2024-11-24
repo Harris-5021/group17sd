@@ -103,6 +103,10 @@
                        <label for="procurement_cost">Procurement Cost</label>
                        <input type="number" step="0.01" name="procurement_cost" id="procurement_cost">
                    </div>
+                   <div class="form-group">
+                       <label for="quantity">Quantity</label>
+                       <input type="number" step="0.01" name="quantity" id="quantity">
+                   </div>
                
                    <div class="form-group">
                        <label for="payment_status">Payment Status</label>
