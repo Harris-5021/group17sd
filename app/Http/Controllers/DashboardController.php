@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Models\Media;
 use App\Models\Procurement;
+use App\Models\Inventory;
 
 class DashboardController extends Controller
 {
@@ -106,6 +107,10 @@ class DashboardController extends Controller
 
     public function storeProcurement(Request $request)
 {
+
+    $branch = DB::table('branches')
+    ->where('name', $request->input('branch_location'))  // Assuming 'location' is the column in the branches table
+    ->first();
     
     // Validate the procurement form data
     $request->validate([
@@ -129,6 +134,7 @@ class DashboardController extends Controller
         'publication_year' => $request->input('publication_year'),
         'status' => 'available', // Default status for new media
     ]);
+    
 
     // Step 2: Insert into the procurements table using the new media_id
     Procurement::create([
@@ -139,6 +145,11 @@ class DashboardController extends Controller
         'procurement_cost' => $request->input('procurement_cost'),
         'payment_status' => $request->input('payment_status'),
         'branch_location' => $request->input('branch_location'),
+    ]);
+    Inventory::create([
+        'media_id' => $media->id, // Use the ID of the newly created media
+        'branch_id' => $branch->id,
+        'quantity' => 1,
     ]);
     
 
