@@ -43,17 +43,18 @@
     @foreach($subscriptions as $item)
     <td>{{$item -> id}}</td>
     <td>{{$item -> user_id}}</td>
-    <td>{{$item -> plan_type}}</td>
-    <td>{{$item -> amount}}</td>
-    <td>{{$item -> status}}</td>
-    <td>{{$item -> start_date}}</td>
+    <td><input type = "text" name = "plan_type" value= " {{$item -> plan_type}}" disabled></td>
+    <td><input type = "text" name = "amount" value= " {{$item -> amount}}" disabled></td>
+    <td>{{$item -> status}}</td> 
+    <td><input type = "date" name = "start_date" value= "{{$item -> start_date}}" disabled></td>
     <td>{{$item -> end_date}}</td>
     <td>{{$item -> next_billing_date}}</td>
-    @if ($item -> fee_paid == 1)
-        <td>Yes</td>
-    @else
-        <td>No</td>
-    @endif
+    <td>
+        <select name="fee_paid" disabled>
+                            <option value="Y" {{ $item->fee_paid == '1' ? 'selected' : '' }}>Y</option>
+                            <option value="N" {{ $item->fee_paid == '0' ? 'selected' : '' }}>N</option>
+        </select>
+    </td>
     @endforeach
 </tr>
 

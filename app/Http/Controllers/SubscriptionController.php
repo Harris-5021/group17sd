@@ -33,13 +33,23 @@ class SubscriptionController extends Controller
 
     public function updateSubscription(Request $request, $id)
     {
+        if($request['fee_paid'] == 1)
+        {
+            $status = 'Active';
+        } else
+        {
+            $status = 'Suspended';
+        }
+
         DB::updateSubscription(
             'UPDATE subscriptions
-            SET plan_type = :plan_type, amount = :amount
+            SET plan_type = :plan_type, amount = :amount, status = :status, fee_paid = :fee_paid
             WHERE id = :id',
             [
                 'plan_type' => $request['plan_type'],
                 'amount' => $request['amount'],
+                'status' => $status,
+                'fee_paid' => $request['fee_paid'],
                 'id' => $id,
             ]
             );
