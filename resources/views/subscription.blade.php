@@ -27,7 +27,7 @@
 <div>
 <h1>Subscription details for: "{{ $name }}"</h1>
 
-<table>]
+<table>
 <tr>
     <td>Subscription ID</td>
     <td>User ID</td>

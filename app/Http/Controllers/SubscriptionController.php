@@ -31,5 +31,21 @@ class SubscriptionController extends Controller
 
     }
 
+    public function updateSubscription(Request $request, $id)
+    {
+        DB::updateSubscription(
+            'UPDATE subscriptions
+            SET plan_type = :plan_type, amount = :amount
+            WHERE id = :id',
+            [
+                'plan_type' => $request['plan_type'],
+                'amount' => $request['amount'],
+                'id' => $id,
+            ]
+            );
+            return redirect()->back()->with('success', 'Subscription updated successfully!');
+
+    }
+
 }
 
