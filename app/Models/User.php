@@ -15,7 +15,8 @@ class User extends Authenticatable
         'password',
         'role',
         'last_login',
-        'notification_preferences'
+        'notification_preferences',
+        'branch_id'
     ];
 
     protected $hidden = [
@@ -34,4 +35,8 @@ class User extends Authenticatable
         return $this->hasMany(Loan::class, 'user_id');
     }
 
+    public function branch()
+{
+    return $this->belongsTo(Branch::class);
+}
 }

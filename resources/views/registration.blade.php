@@ -58,7 +58,17 @@
                                 <div class="text-danger mt-2">{{ $errors->first('password') }}</div>
                              @endif
                             </div>
-
+                            <div class="form-group mb-3">
+                                <select name="branch_id" id="branch_id" class="form-control" required>
+                                    <option value="">Select your preferred branch</option>
+                                    @foreach($branches as $branch)
+                                        <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                                    @endforeach
+                                </select>
+                                @if ($errors->has('branch_id'))
+                                    <span class="text-danger">{{ $errors->first('branch_id') }}</span>
+                                @endif
+                            </div>
                                 <!-- Submit button -->
                                 <div class="d-grid mx-auto">
                                     <button type="submit" class="btn btn-dark btn-block">Register</button>
