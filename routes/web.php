@@ -11,6 +11,7 @@ use App\Http\Controllers\ProcurementController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Mail\NewMemberNotify;
+use App\Http\Controllers\DeliveryController;
 use Illuminate\Support\Facades\Mail;
 
 
@@ -81,5 +82,9 @@ Route::get('/send-test-email', function () {
     Mail::to($testEmail)->send(new NewMemberNotify($testEmail, $userName));
     
     return 'Test email sent to ' . $testEmail;
+});
+Route::middleware(['auth'])->group(function () {
+    // Route to handle the delivery request
+    Route::post('/media/{mediaId}/request-delivery', [DeliveryController::class, 'requestDelivery'])->name('delivery.request');
 });
 
