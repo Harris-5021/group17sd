@@ -49,9 +49,9 @@
                     <p>Description: {{ $item->description ?? 'No description available.' }}</p>
                     <p>Additional Info: {{ $item->additional_info ?? 'N/A' }}</p>
                     <p id="copies-available-{{ $item->id }}" class="quantity">Copies available: Select a branch</p>
-    
+                
                     @if($item->status === 'available')
-                        <form action="{{ route('borrow', $item->id) }}" method="POST" onsubmit="event.stopPropagation();">
+                        <form action="{{ route('borrow', $item->id) }}" method="POST" onsubmit="event.stopPropagation();" id="borrow-form-{{ $item->id }}">
                             @csrf
                             <select name="branch_id" required class="branch-select" data-media-id="{{ $item->id }}">
                                 <option value="">Select Branch</option>
@@ -61,7 +61,8 @@
                             </select>
                             <button type="submit" class="borrow-btn">Borrow</button>
                         </form>
-                        <form action="{{ route('wishlist.add', $item->id) }}" method="POST" onsubmit="event.stopPropagation();">
+                        
+                        <form action="{{ route('wishlist.add', $item->id) }}" method="POST" onsubmit="event.stopPropagation();" id="wishlist-form-{{ $item->id }}" style="display: none;">
                             @csrf
                             <button type="submit" class="wishlist-btn">Add to Wishlist</button>
                         </form>
@@ -152,34 +153,39 @@
 
 <script src="{{ asset('js/accessibility-toolbar.js') }}"></script>
 <script>
-    $(document).ready(function() {
-        $('.branch-select').change(function() {
-            var branchId = $(this).val();
-            var mediaId = $(this).data('media-id');
-            
-            console.log('Branch selected:', branchId);
-            console.log('Media ID:', mediaId);
-            
-            if(branchId) {
-                $.ajax({
-                    url: `/media/inventory/${mediaId}/${branchId}`,
-                    method: 'GET',
-                    success: function(data) {
-                        console.log('Response:', data);
-                        $(`#copies-available-${mediaId}`).text('Copies available: ' + data.quantity);
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error:', error);
-                        console.error('Status:', status);
-                        console.error('Response:', xhr.responseText);
-                        $(`#copies-available-${mediaId}`).text('Error loading quantity');
+   $(document).ready(function() {
+    $('.branch-select').change(function() {
+        var branchId = $(this).val();
+        var mediaId = $(this).data('media-id');
+        
+        if(branchId) {
+            $.ajax({
+                url: `/media/inventory/${mediaId}/${branchId}`,
+                method: 'GET',
+                success: function(data) {
+                    $(`#copies-available-${mediaId}`).text('Copies available: ' + data.quantity);
+                    
+                    // Show/hide buttons based on quantity
+                    if (data.quantity == 0) {
+                        $(`#borrow-form-${mediaId}`).hide();
+                        $(`#wishlist-form-${mediaId}`).show();
+                    } else {
+                        $(`#borrow-form-${mediaId}`).show();
+                        $(`#wishlist-form-${mediaId}`).hide();
                     }
-                });
-            } else {
-                $(`#copies-available-${mediaId}`).text('Copies available: Select a branch');
-            }
-        });
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+                    $(`#copies-available-${mediaId}`).text('Error loading quantity');
+                }
+            });
+        } else {
+            $(`#copies-available-${mediaId}`).text('Copies available: Select a branch');
+            $(`#borrow-form-${mediaId}`).show();
+            $(`#wishlist-form-${mediaId}`).hide();
+        }
     });
+});
     </script>
 </body>
 </html>
