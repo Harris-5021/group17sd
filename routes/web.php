@@ -12,8 +12,10 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Mail\NewMemberNotify;
 use Illuminate\Support\Facades\Mail;
-
-
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use App\Models\Media;
+use Illuminate\Http\Request;
 // Public routes
 Route::get('/', [Controller::class, 'home'])->name('home');
 Route::get('/test', [TestController::class, 'test'])->name('test');
@@ -30,6 +32,13 @@ Route::middleware(['auth'])->group(function () {
 
     // Dashboard
     //Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/update-branch', function(Request $request) {
+        DB::table('users')
+            ->where('id', Auth::id())
+            ->update(['branch_id' => $request->branch_id]);
+        
+        return redirect()->back()->with('success', 'Preferred branch updated successfully');
+    })->name('update.branch');
     Route::get('/dashboard/accountant', [DashboardController::class, 'index'])->name('dashboard.accountant');
     Route::get('/dashboard/purchase_manager', [DashboardController::class, 'index'])->name('dashboard.purchase_manager');
     Route::get('/dashboard/branch_manager', [DashboardController::class, 'index'])->name('dashboard.branch_manager');
