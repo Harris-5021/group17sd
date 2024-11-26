@@ -111,7 +111,7 @@
 
 <script src="{{ asset('js/accessibility-toolbar.js') }}"></script>
 <script>
-   $(document).ready(function() {
+$(document).ready(function() {
     $('.branch-select').change(function() {
         var branchId = $(this).val();
         var mediaId = $(this).data('media-id');
@@ -125,12 +125,14 @@
                     
                     // Show/hide buttons based on quantity
                     if (data.quantity == 0) {
-                        $(`#borrow-form-${mediaId}`).hide();
+                        $(`#borrow-form-${mediaId} .borrow-btn`).hide();
                         $(`#wishlist-form-${mediaId}`).show();
                     } else {
-                        $(`#borrow-form-${mediaId}`).show();
+                        $(`#borrow-form-${mediaId} .borrow-btn`).show();
                         $(`#wishlist-form-${mediaId}`).hide();
                     }
+                    // Always keep the branch select visible
+                    $(`#borrow-form-${mediaId} .branch-select`).show();
                 },
                 error: function(xhr, status, error) {
                     console.error('Error:', error);
@@ -139,7 +141,7 @@
             });
         } else {
             $(`#copies-available-${mediaId}`).text('Copies available: Select a branch');
-            $(`#borrow-form-${mediaId}`).show();
+            $(`#borrow-form-${mediaId} .borrow-btn`).show();
             $(`#wishlist-form-${mediaId}`).hide();
         }
     });
