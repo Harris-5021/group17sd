@@ -45,12 +45,26 @@
                     <form action="{{ route('media.notify') }}" method="POST" class="notify-form">
                         @csrf
                         <input type="hidden" name="media_id" value="{{ $item->id }}">
-                        <select name="branch_id" required class="branch-select">
-                            <option value="">Select Branch</option>
-                            @foreach($branches as $branch)
-                                <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-                            @endforeach
-                        </select>
+                        <!-- In your wishlist view -->
+<select name="branch_id" required class="branch-select">
+    <option value="">Select Branch</option>
+    @if(Auth::user()->branch_id)
+        @php
+            $preferredBranch = DB::table('branches')
+                ->where('id', Auth::user()->branch_id)
+                ->first();
+        @endphp
+        @if($preferredBranch)
+            <option value="{{ $preferredBranch->id }}">Preferred Branch ({{ $preferredBranch->name }})</option>
+        @endif
+    @endif
+    <option disabled>──────────</option>
+    @foreach($branches as $branch)
+        @if($branch->id != Auth::user()->branch_id)
+            <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+        @endif
+    @endforeach
+</select>
                         <button type="submit" class="notify-btn">Notify Branch Manager</button>
                     </form>
                     
