@@ -51,6 +51,7 @@
                     <p id="copies-available-{{ $item->id }}" class="quantity">Copies available: Select a branch</p>
                 
                     @if($item->status === 'available')
+                        <!-- Borrow Form -->
                         <form action="{{ route('borrow', $item->id) }}" method="POST" onsubmit="event.stopPropagation();" id="borrow-form-{{ $item->id }}">
                             @csrf
                             <select name="branch_id" required class="branch-select" data-media-id="{{ $item->id }}">
@@ -61,10 +62,24 @@
                             </select>
                             <button type="submit" class="borrow-btn">Borrow</button>
                         </form>
-                        
+
+                        <!-- Wishlist Form -->
                         <form action="{{ route('wishlist.add', $item->id) }}" method="POST" onsubmit="event.stopPropagation();" id="wishlist-form-{{ $item->id }}" style="display: none;">
                             @csrf
                             <button type="submit" class="wishlist-btn">Add to Wishlist</button>
+                        </form>
+
+                        <!-- Delivery Form -->
+                        <form action="{{ route('delivery.request', $item->id) }}" method="POST" onsubmit="event.stopPropagation();" id="delivery-form-{{ $item->id }}">
+                            @csrf
+                            <h3>Request Delivery</h3>
+                            <label for="address">Delivery Address:</label>
+                            <input type="text" name="address" id="address-{{ $item->id }}" required placeholder="Enter your delivery address">
+                            
+                            <label for="delivery_date">Preferred Delivery Date:</label>
+                            <input type="date" name="delivery_date" id="delivery_date-{{ $item->id }}" required>
+
+                            <button type="submit" class="delivery-btn">Request Delivery</button>
                         </form>
                     @endif
                 </div>
@@ -73,7 +88,6 @@
     </div>
     {{ $media->links() }}
 </main>
-
 
 <script>
    function toggleDetails(event, card) {
@@ -94,62 +108,6 @@
         }
     }
 </script>
-    <!-- Add this HTML to your pages -->
-<div class="accessibility-toolbar">
-    <button id="accessibilityToggle" class="toolbar-toggle">
-        <span class="icon">Aa</span>
-    </button>
-    
-    <div id="toolbarPanel" class="toolbar-panel hidden">
-        <h3>Accessibility Options</h3>
-        
-        <div class="toolbar-section">
-            <label>Text Size</label>
-            <div class="button-group">
-                <button id="decreaseText">A-</button>
-                <button id="increaseText">A+</button>
-            </div>
-        </div>
-
-        <div class="toolbar-section">
-            <label>Contrast</label>
-            <button id="toggleContrast">Toggle High Contrast</button>
-        </div>
-
-        <div class="toolbar-section">
-            <label>Text Weight</label>
-            <button id="toggleBold">Toggle Bold Text</button>
-        </div>
-    </div>
-</div>
-
-<div class="accessibility-toolbar">
-    <button id="accessibilityToggle" class="toolbar-toggle">
-        <span class="icon">Aa</span>
-    </button>
-    
-    <div id="toolbarPanel" class="toolbar-panel hidden">
-        <h3>Accessibility Options</h3>
-        
-        <div class="toolbar-section">
-            <label>Text Size</label>
-            <div class="button-group">
-                <button id="decreaseText">A-</button>
-                <button id="increaseText">A+</button>
-            </div>
-        </div>
-
-        <div class="toolbar-section">
-            <label>Contrast</label>
-            <button id="toggleContrast">Toggle High Contrast</button>
-        </div>
-
-        <div class="toolbar-section">
-            <label>Text Weight</label>
-            <button id="toggleBold">Toggle Bold Text</button>
-        </div>
-    </div>
-</div>
 
 <script src="{{ asset('js/accessibility-toolbar.js') }}"></script>
 <script>
@@ -186,6 +144,7 @@
         }
     });
 });
-    </script>
+</script>
+
 </body>
 </html>
