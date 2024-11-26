@@ -27,6 +27,7 @@ Route::get('signout', [LoginController::class, 'signOut'])->name('signout');
 
 // Protected routes (require authentication)
 Route::middleware(['auth'])->group(function () {
+
     // Dashboard
     //Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/accountant', [DashboardController::class, 'index'])->name('dashboard.accountant');
@@ -53,6 +54,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/notifications/{id}/accept', [DashboardController::class, 'acceptRequest'])->name('notifications.accept');
     Route::post('/notifications/{id}/reject', [DashboardController::class, 'rejectRequest'])->name('notifications.reject');
 
+    Route::get('/media/inventory/{mediaId}/{branchId}', [MediaController::class, 'getInventory'])->name('media.inventory');
+});
     // Media routes
     Route::get('/search', [MediaController::class, 'search'])->name('search');
     Route::get('/browse', [MediaController::class, 'browse'])->name('browse');
@@ -65,7 +68,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/media/{id}/return', [MediaController::class, 'return'])->name('return');
     Route::post('/media/{id}/wishlist', [MediaController::class, 'addToWishlist'])->name('wishlist.add');
     Route::delete('/media/{id}/wishlist', [MediaController::class, 'removeFromWishlist'])->name('wishlist.remove');
-});
+
+
+   
+
 
 Route::get('/send-test-email', function () {
     $testEmail = 'harrisfiaz3@gmail.com'; // Replace with your actual email

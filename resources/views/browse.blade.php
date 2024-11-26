@@ -6,6 +6,7 @@
     <title>Browse Media - AML</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/accessibility-toolbar.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
     <header>
@@ -42,17 +43,17 @@
                 <p>By {{ $item->author }}</p>
                 <p>Type: {{ $item->type }}</p>
                 <p>Published: {{ $item->publication_year }}</p>
-
+    
                 <!-- Hidden extra details that will expand -->
                 <div class="media-card-details" style="display: none;">
                     <p>Description: {{ $item->description ?? 'No description available.' }}</p>
                     <p>Additional Info: {{ $item->additional_info ?? 'N/A' }}</p>
-                    <p class="quantity">Copies available: {{ $item->quantity }}</p>
-
+                    <p id="copies-available-{{ $item->id }}" class="quantity">Copies available: Select a branch</p>
+    
                     @if($item->status === 'available')
                         <form action="{{ route('borrow', $item->id) }}" method="POST" onsubmit="event.stopPropagation();">
                             @csrf
-                            <select name="branch_id" required class="branch-select">
+                            <select name="branch_id" required class="branch-select" data-media-id="{{ $item->id }}">
                                 <option value="">Select Branch</option>
                                 @foreach(DB::table('branches')->get() as $branch)
                                     <option value="{{ $branch->id }}">{{ $branch->name }}</option>
@@ -150,5 +151,35 @@
 </div>
 
 <script src="{{ asset('js/accessibility-toolbar.js') }}"></script>
+<script>
+    $(document).ready(function() {
+        $('.branch-select').change(function() {
+            var branchId = $(this).val();
+            var mediaId = $(this).data('media-id');
+            
+            console.log('Branch selected:', branchId);
+            console.log('Media ID:', mediaId);
+            
+            if(branchId) {
+                $.ajax({
+                    url: `/media/inventory/${mediaId}/${branchId}`,
+                    method: 'GET',
+                    success: function(data) {
+                        console.log('Response:', data);
+                        $(`#copies-available-${mediaId}`).text('Copies available: ' + data.quantity);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error:', error);
+                        console.error('Status:', status);
+                        console.error('Response:', xhr.responseText);
+                        $(`#copies-available-${mediaId}`).text('Error loading quantity');
+                    }
+                });
+            } else {
+                $(`#copies-available-${mediaId}`).text('Copies available: Select a branch');
+            }
+        });
+    });
+    </script>
 </body>
 </html>

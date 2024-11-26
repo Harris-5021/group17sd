@@ -281,5 +281,25 @@ class MediaController extends Controller
     } catch (\Exception $e) {
         return back()->with('error', 'An error occurred while sending the notification.');
     }
+
+
+    
 }
+
+
+public function getInventory($mediaId, $branchId)
+{
+    $inventory = DB::table('inventory')
+        ->where('media_id', $mediaId)
+        ->where('branch_id', $branchId)
+        ->first();
+    
+    return response()->json([
+        'quantity' => $inventory ? $inventory->quantity : 0
+    ]);
+}
+
+
+
+
 }
