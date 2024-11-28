@@ -60,8 +60,52 @@ class DashboardController extends Controller
                ->get();
        
            return view('dashboard.branch_manager', compact('user', 'borrowedItems', 'wishlistItems', 'notifications'));
-       case 'librarian':
-           return view('dashboard.librarian', compact('user', 'borrowedItems', 'wishlistItems'));
+           case 'librarian':
+            // Query for pending returns
+            $pendingReturns = DB::table('loans')
+                ->join('users', 'loans.user_id', '=', 'users.id')
+                ->join('media', 'loans.media_id', '=', 'media.id')
+                ->where('loans.status', '=', 'active')
+                ->select(
+                    'loans.id',
+                    'loans.media_id',
+                    'loans.due_date',
+                    'media.title',
+                    'users.name as user_name'
+                )
+                ->orderBy('loans.borrowed_date', 'desc')
+                ->take(10)
+                ->get();
+        
+            // Query for recent fines
+            $recentFines = DB::table('fines')
+                ->join('users', 'fines.user_id', '=', 'users.id')
+                ->select(
+                    'fines.loan_id',
+                    'fines.amount',
+                    'fines.reason',
+                    'fines.status',
+                    'users.name as user_name'
+                )
+                ->orderBy('fines.created_at', 'desc')
+                ->take(5) // You can adjust the limit
+                ->get();
+        
+            // Query for damaged items
+            $damagedItems = DB::table('media')
+                ->where('status', 'damaged')
+                ->select(
+                    'id as media_id',
+                    'title',
+                    'damage_notes',
+                    'updated_at as reported_date',
+                    'status'
+                )
+                ->get();
+        
+            return view('dashboard.librarian', compact('user', 'borrowedItems', 'wishlistItems', 'pendingReturns', 'recentFines', 'damagedItems'));
+        
+           
        case 'member':
            return view('dashboard.member', compact('user', 'borrowedItems', 'wishlistItems', 'userBranch', 'branches'));
        default:
@@ -326,4 +370,195 @@ public function rejectRequest($id)
 
     return redirect()->route('dashboard.purchase_manager')->with('success', 'Response sent to branch manager');
 }
+
+
+public function viewProcessedReturns()
+{
+    $processedReturns = DB::table('loans')
+        ->join('users', 'loans.user_id', '=', 'users.id')
+        ->join('media', 'loans.media_id', '=', 'media.id')
+        ->whereIn('loans.status', ['returned', 'damaged'])
+        ->select(
+            'loans.id',
+            'loans.media_id',
+            'loans.returned_date',
+            'loans.status',
+            'loans.damaged_notes',
+            'media.title',
+            'users.name as user_name'
+        )
+        ->orderBy('loans.returned_date', 'desc')
+        ->paginate(15);
+
+    return view('processed-returns', compact('processedReturns'));
+}
+
+public function searchReturns(Request $request)
+{
+    $query = $request->input('query');
+    
+    $returns = DB::table('loans')
+        ->join('users', 'loans.user_id', '=', 'users.id')
+        ->join('media', 'loans.media_id', '=', 'media.id')
+        ->where(function($q) use ($query) {
+            $q->where('media.id', 'LIKE', "%$query%")
+              ->orWhere('users.id', 'LIKE', "%$query%")
+              ->orWhere('media.title', 'LIKE', "%$query%")
+              ->orWhere('users.name', 'LIKE', "%$query%");
+        })
+        ->where('loans.status', '=', 'active')
+        ->select(
+            'loans.id',
+            'loans.media_id',
+            'loans.due_date',
+            'media.title',
+            'users.name as user_name'
+        )
+        ->get();
+
+    return view('search-results', compact('returns', 'query'));
+}
+
+public function viewFines()
+{
+    // Fetch fines with additional details
+    $fines = DB::table('fines')
+        ->join('loans', 'fines.loan_id', '=', 'loans.id')
+        ->join('users', 'fines.user_id', '=', 'users.id')
+        ->join('media', 'loans.media_id', '=', 'media.id')
+        ->select(
+            'fines.*',
+            'media.title',
+            'users.name as user_name'
+        )
+        ->orderBy('fines.created_at', 'desc')
+        ->paginate(15);
+
+    // Define recent fines for the view (adjust query if necessary)
+    $recentFines = DB::table('fines')
+        ->join('users', 'fines.user_id', '=', 'users.id')
+        ->select('fines.amount', 'fines.created_at', 'users.name as user_name')
+        ->orderBy('fines.created_at', 'desc')
+        ->limit(5)
+        ->get();
+
+    return view('fines', compact('fines', 'recentFines'));
+}
+
+
+public function processReturn(Request $request)
+{
+    $request->validate([
+        'return_id' => 'required|exists:loans,id',
+        'damage_notes' => 'nullable|string|max:1000',
+        'fine_amount' => 'nullable|numeric|min:0',
+        'status' => 'required|in:returned,damaged'
+    ]);
+
+    try {
+        DB::beginTransaction();
+
+        $loan = DB::table('loans')->where('id', $request->return_id)->first();
+        
+        if (!$loan) {
+            throw new \Exception('Loan not found');
+        }
+
+        // Update loan status
+        DB::table('loans')
+            ->where('id', $request->return_id)
+            ->update([
+                'status' => $request->status,
+                'returned_date' => now(),
+                'damaged_notes' => $request->status === 'damaged' ? $request->damage_notes : null
+            ]);
+
+        // If there's a fine amount, create a fine record
+        if ($request->fine_amount > 0) {
+            DB::table('fines')->insert([
+                'loan_id' => $loan->id,
+                'user_id' => $loan->user_id,
+                'amount' => $request->fine_amount,
+                'reason' => $request->status === 'damaged' ? 'damage' : 'overdue',
+                'status' => 'pending',
+                'due_date' => now()->addDays(30),
+                'created_at' => now()
+            ]);
+        }
+
+        // Update media inventory
+        DB::table('inventory')
+            ->where('media_id', $loan->media_id)
+            ->where('branch_id', $loan->branch_id)
+            ->increment('quantity');
+
+        // If damaged, update media status
+        if ($request->status === 'damaged') {
+            DB::table('media')
+                ->where('id', $loan->media_id)
+                ->update(['status' => 'damaged']);
+        }
+
+        DB::commit();
+        return redirect()->back()->with('success', 'Return processed successfully');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->back()->with('error', 'Failed to process return: ' . $e->getMessage());
+    }
+}
+
+public function librarianDashboard()
+{
+    $user = Auth::user();
+
+    // Query for pending returns
+    $pendingReturns = DB::table('loans')
+        ->join('users', 'loans.user_id', '=', 'users.id')
+        ->join('media', 'loans.media_id', '=', 'media.id')
+        ->where('loans.status', '=', 'active')
+        ->select(
+            'loans.id',
+            'loans.media_id',
+            'loans.due_date',
+            'media.title',
+            'users.name as user_name'
+        )
+        ->orderBy('loans.borrowed_date', 'desc')
+        ->take(10)
+        ->get();
+
+    // Query for recent fines
+    $recentFines = DB::table('fines')
+        ->join('loans', 'fines.loan_id', '=', 'loans.id')
+        ->join('users', 'fines.user_id', '=', 'users.id')
+        ->select(
+            'fines.loan_id',
+            'fines.amount',
+            'fines.reason',
+            'fines.status',
+            'users.name as user_name'
+        )
+        ->orderBy('fines.created_at', 'desc')
+        ->take(10)
+        ->get();
+
+    // Query for damaged items
+    $damagedItems = DB::table('media')
+        ->select(
+            'id as media_id',
+            'title',
+            'damage_notes',
+            'updated_at as reported_date',
+            'status'
+        )
+        ->where('status', '=', 'damaged')
+        ->get();
+
+    // Return the librarian dashboard view with the data
+    return view('dashboard.librarian', compact('user', 'pendingReturns', 'recentFines', 'damagedItems'));
+}
+
+
+
+
 }
