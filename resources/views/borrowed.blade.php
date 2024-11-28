@@ -50,22 +50,25 @@
 
         <div class="media-grid">
             @if($activeLoans->count() > 0)
-                @foreach($activeLoans as $item)
-                    <div class="media-card">
-                        <h2>{{ $item->title }}</h2>
-                        <p>By {{ $item->author }}</p>
-                        <p>Borrowed: {{ \Carbon\Carbon::parse($item->borrowed_date)->format('d/m/Y') }}</p>
-                        <p>Due: {{ \Carbon\Carbon::parse($item->due_date)->format('d/m/Y') }}</p>
-                        <form action="{{ route('return', $item->loan_id) }}" method="POST">
-                            @csrf
-                            <button type="submit" class="return-btn">Return Book</button>
-                        </form>
-                    </div>
-                @endforeach
+            @foreach ($activeLoans as $loan)
+            <div class="media-card">
+                <h2>{{ $loan->title ?? 'Unknown Title' }}</h2>
+                <p>By {{ $loan->author ?? 'Unknown Author' }}</p>
+                <p>Borrowed: {{ \Carbon\Carbon::parse($loan->borrowed_date)->format('d/m/Y') }}</p>
+                <p>Due: {{ \Carbon\Carbon::parse($loan->due_date)->format('d/m/Y') }}</p>
+        
+                <form action="{{ route('return', $loan->loan_id) }}" method="POST">
+                    @csrf
+                    <button type="submit" class="return-btn">Return Book</button>
+                </form>
+            </div>
+        @endforeach
+        
             @else
                 <p>You haven't borrowed any items yet.</p>
             @endif
         </div>
+        
     </main>
     <!-- Add this HTML to your pages -->
 <div class="accessibility-toolbar">
