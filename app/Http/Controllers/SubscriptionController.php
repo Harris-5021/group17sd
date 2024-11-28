@@ -17,12 +17,12 @@ class SubscriptionController extends Controller
         return view('subscription');
     }
 
-    public function showUser($id, $name)
+    public function showUser($user_id, $name)
     {
 
         $UserSubscription = DB::table('subscriptions')
         ->select('subscriptions.*')
-        ->where('user_id', $id)
+        ->where('user_id', $user_id)
         ->get();
 
         return view('subscription', 
@@ -56,6 +56,7 @@ class SubscriptionController extends Controller
             return redirect()->back()->with('success', 'Subscription updated successfully!');
 
     }
+
 
 }
 

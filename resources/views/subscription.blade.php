@@ -6,6 +6,46 @@
     <title>Subscription details - AML</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/accessibility-toolbar.css') }}">
+    <style>
+        /* Modal overlay styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay:target {
+            display: flex;
+        }
+
+        /* Modal content styles */
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .modal-buttons button {
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+    </style>
 </head>
     <header>
         <div class="logo">
@@ -40,26 +80,53 @@
     <td>Fee paid</td>
 </tr>
 <tr>
-    @foreach($subscriptions as $item)
-    <td>{{$item -> id}}</td>
-    <td>{{$item -> user_id}}</td>
-    <td><input type = "text" name = "plan_type" value= " {{$item -> plan_type}}" disabled></td>
-    <td><input type = "text" name = "amount" value= " {{$item -> amount}}" disabled></td>
-    <td>{{$item -> status}}</td> 
-    <td><input type = "date" name = "start_date" value= "{{$item -> start_date}}" disabled></td>
-    <td>{{$item -> end_date}}</td>
-    <td>{{$item -> next_billing_date}}</td>
+    @foreach($subscriptions as $sub)
+    <td>{{$sub -> id}}</td>
+    <td>{{$sub -> user_id}}</td>
     <td>
-        <select name="fee_paid" disabled>
-                            <option value="Y" {{ $item->fee_paid == '1' ? 'selected' : '' }}>Y</option>
-                            <option value="N" {{ $item->fee_paid == '0' ? 'selected' : '' }}>N</option>
-        </select>
+    {{$sub -> plan_type}}<br>
+    <a href="#edit-plan-type">Edit</a>
     </td>
+    <td>
+    {{$sub -> amount}}<br>
+    <a href ="edit-amount">Edit</a>
+    </td>
+    <td>{{$sub -> status}}</td>
+    <td>
+    {{$sub -> start_date}}<br>
+    <a href ="edit-start-date">Edit</a>
+    </td>
+    <td>{{$sub -> end_date}}</td>
+    <td>{{$sub -> next_billing_date}}</td>
+    <td>
+    {{ $sub->fee_paid == '1' ? 'Y' : 'N' }}<br>
+    <a href="#edit-fee-paid">Edit</a>
+    </td>
+
+
+    <div id="edit-plan-type" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Edit Plan Type</h2>
+            <form method="POST" action="{{ route('subscription.updateSubscription', ['id' => $sub->id]) }}">
+            @csrf
+                <input type="text" name="plan_type" placeholder="Enter new Plan Type">
+                <div class="modal-buttons">
+                    <button type="submit">Save</button>
+                    <a href="#">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (session('success'))
+<div class="alert alert-success">
+    {{ session('success') }}
+</div>
+@endif
     @endforeach
 </tr>
-
 </table>
-
 </div>
+
 
 </body>
