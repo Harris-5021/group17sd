@@ -6,6 +6,7 @@
     <title>Browse Media - AML</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/accessibility-toolbar.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
     <header>
@@ -42,17 +43,18 @@
                 <p>By {{ $item->author }}</p>
                 <p>Type: {{ $item->type }}</p>
                 <p>Published: {{ $item->publication_year }}</p>
-
+    
                 <!-- Hidden extra details that will expand -->
                 <div class="media-card-details" style="display: none;">
                     <p>Description: {{ $item->description ?? 'No description available.' }}</p>
                     <p>Additional Info: {{ $item->additional_info ?? 'N/A' }}</p>
-                    <p class="quantity">Copies available: {{ $item->quantity }}</p>
-
+                    <p id="copies-available-{{ $item->id }}" class="quantity">Copies available: Select a branch</p>
+                
                     @if($item->status === 'available')
-                        <form action="{{ route('borrow', $item->id) }}" method="POST" onsubmit="event.stopPropagation();">
+                        <!-- Borrow Form -->
+                        <form action="{{ route('borrow', $item->id) }}" method="POST" onsubmit="event.stopPropagation();" id="borrow-form-{{ $item->id }}">
                             @csrf
-                            <select name="branch_id" required class="branch-select">
+                            <select name="branch_id" required class="branch-select" data-media-id="{{ $item->id }}">
                                 <option value="">Select Branch</option>
                                 @foreach(DB::table('branches')->get() as $branch)
                                     <option value="{{ $branch->id }}">{{ $branch->name }}</option>
@@ -60,9 +62,24 @@
                             </select>
                             <button type="submit" class="borrow-btn">Borrow</button>
                         </form>
-                        <form action="{{ route('wishlist.add', $item->id) }}" method="POST" onsubmit="event.stopPropagation();">
+
+                        <!-- Wishlist Form -->
+                        <form action="{{ route('wishlist.add', $item->id) }}" method="POST" onsubmit="event.stopPropagation();" id="wishlist-form-{{ $item->id }}" style="display: none;">
                             @csrf
                             <button type="submit" class="wishlist-btn">Add to Wishlist</button>
+                        </form>
+
+                        <!-- Delivery Form -->
+                        <form action="{{ route('delivery.request', $item->id) }}" method="POST" onsubmit="event.stopPropagation();" id="delivery-form-{{ $item->id }}">
+                            @csrf
+                            <h3>Request Delivery</h3>
+                            <label for="address">Delivery Address:</label>
+                            <input type="text" name="address" id="address-{{ $item->id }}" required placeholder="Enter your delivery address">
+                            
+                            <label for="delivery_date">Preferred Delivery Date:</label>
+                            <input type="date" name="delivery_date" id="delivery_date-{{ $item->id }}" required>
+
+                            <button type="submit" class="delivery-btn">Request Delivery</button>
                         </form>
                     @endif
                 </div>
@@ -71,7 +88,6 @@
     </div>
     {{ $media->links() }}
 </main>
-
 
 <script>
    function toggleDetails(event, card) {
@@ -92,63 +108,45 @@
         }
     }
 </script>
-    <!-- Add this HTML to your pages -->
-<div class="accessibility-toolbar">
-    <button id="accessibilityToggle" class="toolbar-toggle">
-        <span class="icon">Aa</span>
-    </button>
-    
-    <div id="toolbarPanel" class="toolbar-panel hidden">
-        <h3>Accessibility Options</h3>
-        
-        <div class="toolbar-section">
-            <label>Text Size</label>
-            <div class="button-group">
-                <button id="decreaseText">A-</button>
-                <button id="increaseText">A+</button>
-            </div>
-        </div>
-
-        <div class="toolbar-section">
-            <label>Contrast</label>
-            <button id="toggleContrast">Toggle High Contrast</button>
-        </div>
-
-        <div class="toolbar-section">
-            <label>Text Weight</label>
-            <button id="toggleBold">Toggle Bold Text</button>
-        </div>
-    </div>
-</div>
-
-<div class="accessibility-toolbar">
-    <button id="accessibilityToggle" class="toolbar-toggle">
-        <span class="icon">Aa</span>
-    </button>
-    
-    <div id="toolbarPanel" class="toolbar-panel hidden">
-        <h3>Accessibility Options</h3>
-        
-        <div class="toolbar-section">
-            <label>Text Size</label>
-            <div class="button-group">
-                <button id="decreaseText">A-</button>
-                <button id="increaseText">A+</button>
-            </div>
-        </div>
-
-        <div class="toolbar-section">
-            <label>Contrast</label>
-            <button id="toggleContrast">Toggle High Contrast</button>
-        </div>
-
-        <div class="toolbar-section">
-            <label>Text Weight</label>
-            <button id="toggleBold">Toggle Bold Text</button>
-        </div>
-    </div>
-</div>
 
 <script src="{{ asset('js/accessibility-toolbar.js') }}"></script>
+<script>
+$(document).ready(function() {
+    $('.branch-select').change(function() {
+        var branchId = $(this).val();
+        var mediaId = $(this).data('media-id');
+        
+        if(branchId) {
+            $.ajax({
+                url: `/media/inventory/${mediaId}/${branchId}`,
+                method: 'GET',
+                success: function(data) {
+                    $(`#copies-available-${mediaId}`).text('Copies available: ' + data.quantity);
+                    
+                    // Show/hide buttons based on quantity
+                    if (data.quantity == 0) {
+                        $(`#borrow-form-${mediaId} .borrow-btn`).hide();
+                        $(`#wishlist-form-${mediaId}`).show();
+                    } else {
+                        $(`#borrow-form-${mediaId} .borrow-btn`).show();
+                        $(`#wishlist-form-${mediaId}`).hide();
+                    }
+                    // Always keep the branch select visible
+                    $(`#borrow-form-${mediaId} .branch-select`).show();
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+                    $(`#copies-available-${mediaId}`).text('Error loading quantity');
+                }
+            });
+        } else {
+            $(`#copies-available-${mediaId}`).text('Copies available: Select a branch');
+            $(`#borrow-form-${mediaId} .borrow-btn`).show();
+            $(`#wishlist-form-${mediaId}`).hide();
+        }
+    });
+});
+</script>
+
 </body>
 </html>

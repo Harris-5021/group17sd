@@ -11,8 +11,12 @@ use App\Http\Controllers\ProcurementController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Mail\NewMemberNotify;
+use App\Http\Controllers\DeliveryController;
 use Illuminate\Support\Facades\Mail;
-
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use App\Models\Media;
+use Illuminate\Http\Request;
 
 // Public routes
 Route::get('/', [Controller::class, 'home'])->name('home');
@@ -27,8 +31,16 @@ Route::get('signout', [LoginController::class, 'signOut'])->name('signout');
 
 // Protected routes (require authentication)
 Route::middleware(['auth'])->group(function () {
+
     // Dashboard
     //Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/update-branch', function(Request $request) {
+        DB::table('users')
+            ->where('id', Auth::id())
+            ->update(['branch_id' => $request->branch_id]);
+        
+        return redirect()->back()->with('success', 'Preferred branch updated successfully');
+    })->name('update.branch');
     Route::get('/dashboard/accountant', [DashboardController::class, 'index'])->name('dashboard.accountant');
     Route::get('/dashboard/purchase_manager', [DashboardController::class, 'index'])->name('dashboard.purchase_manager');
     Route::get('/dashboard/branch_manager', [DashboardController::class, 'index'])->name('dashboard.branch_manager');
@@ -55,6 +67,15 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/notifications/{id}/accept', [DashboardController::class, 'acceptRequest'])->name('notifications.accept');
     Route::post('/notifications/{id}/reject', [DashboardController::class, 'rejectRequest'])->name('notifications.reject');
 
+    Route::get('/media/inventory/{mediaId}/{branchId}', [MediaController::class, 'getInventory'])->name('media.inventory');
+
+
+    Route::get('/returns/pending', [DashboardController::class, 'librarianDashboard'])->name('returns.pending');
+    Route::get('/processed-returns', [DashboardController::class, 'viewProcessedReturns'])->name('returns.processed');
+    Route::get('/returns/search', [DashboardController::class, 'searchReturns'])->name('returns.search');
+    Route::post('/process-return', [DashboardController::class, 'processReturn'])->name('returns.process');
+    Route::get('/fines', [DashboardController::class, 'viewFines'])->name('fines');
+});
     // Media routes
     Route::get('/search', [MediaController::class, 'search'])->name('search');
     Route::get('/browse', [MediaController::class, 'browse'])->name('browse');
@@ -67,15 +88,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/media/{id}/return', [MediaController::class, 'return'])->name('return');
     Route::post('/media/{id}/wishlist', [MediaController::class, 'addToWishlist'])->name('wishlist.add');
     Route::delete('/media/{id}/wishlist', [MediaController::class, 'removeFromWishlist'])->name('wishlist.remove');
-});
 
-Route::get('/send-test-email', function () {
-    $testEmail = 'harrisfiaz3@gmail.com'; // Replace with your actual email
-    $userName = 'harris fiaz'; // Optional name for personalization
-    
-    // Send the email using the mailable
-    Mail::to($testEmail)->send(new NewMemberNotify($testEmail, $userName));
-    
-    return 'Test email sent to ' . $testEmail;
+
+Route::middleware(['auth'])->group(function () {
+    // Route to handle the delivery request
+    Route::post('/media/{mediaId}/request-delivery', [DeliveryController::class, 'requestDelivery'])->name('delivery.request');
 });
 

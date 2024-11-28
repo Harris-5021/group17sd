@@ -38,6 +38,24 @@
         <div class="dashboard-grid">
             <div class="dashboard-card">
                 <h2>Quick Actions</h2>
+                <div class="branch-preference">
+                    <p>Your preferred branch: <strong>{{ $userBranch ? $userBranch->name : 'Not set' }}</strong></p>
+                    <button onclick="toggleBranchSelect()" class="action-btn">Change Branch</button>
+                    
+                    <div id="branchSelectForm" style="display: none; margin-top: 10px;">
+                        <form action="{{ route('update.branch') }}" method="POST">
+                            @csrf
+                            <select name="branch_id" class="form-control">
+                                @foreach($branches as $branch)
+                                    <option value="{{ $branch->id }}" {{ $user->branch_id == $branch->id ? 'selected' : '' }}>
+                                        {{ $branch->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <button type="submit" class="action-btn">Update Branch</button>
+                        </form>
+                    </div>
+                </div>
                 <div class="action-buttons">
                     <a href="{{ route('browse') }}" class="action-btn">Browse Books</a>
                     <a href="{{ route('wishlist') }}" class="action-btn">View Wishlist</a>
@@ -138,5 +156,11 @@
 </div>
 
 <script src="{{ asset('js/accessibility-toolbar.js') }}"></script>
+<script>
+    function toggleBranchSelect() {
+        const form = document.getElementById('branchSelectForm');
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
+    </script>
 </body>
 </html>

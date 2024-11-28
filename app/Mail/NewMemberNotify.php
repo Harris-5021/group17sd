@@ -10,12 +10,19 @@ class NewMemberNotify extends Mailable
 {
     use Queueable, SerializesModels;
 
+    public $bookName;
+    public $branchName;
+
     /**
      * Create a new message instance.
+     *
+     * @param string $bookName
+     * @param string $branchName
      */
-    public function __construct()
+    public function __construct($bookName, $branchName)
     {
-        //
+        $this->bookName = $bookName;
+        $this->branchName = $branchName;
     }
 
     /**
@@ -23,7 +30,10 @@ class NewMemberNotify extends Mailable
      */
     public function build()
     {
-        return $this->subject('New Member Notification')
-                    ->view('email'); // Replace with your actual view path
+        return $this->subject('Book Return Notification')
+                    ->view('emails.return-notification');
     }
 }
+
+
+

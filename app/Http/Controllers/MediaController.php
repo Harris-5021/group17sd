@@ -4,9 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Models\Media;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\Mail;
 class MediaController extends Controller
 {
     public function __construct()
@@ -14,6 +13,7 @@ class MediaController extends Controller
         $this->middleware('auth');
     }
 
+    // Browse media items
     public function browse()
     {
         $media = DB::table('media')
@@ -31,6 +31,7 @@ class MediaController extends Controller
         return view('browse', compact('media'));
     }
 
+    // Search for media items
     public function search(Request $request)
     {
         $query = $request->input('query');
@@ -38,13 +39,13 @@ class MediaController extends Controller
         $media = DB::table('media')
             ->join('inventory', 'media.id', '=', 'inventory.media_id')
             ->join('branches', 'inventory.branch_id', '=', 'branches.id')
-            ->select( 
+            ->select(
                 'media.*', 
                 'inventory.quantity',
                 'inventory.branch_id',
                 'branches.name as branch_name'
             )
-            ->where(function($q) use ($query) {
+            ->where(function ($q) use ($query) {
                 $q->where('media.title', 'LIKE', "%$query%")
                   ->orWhere('media.author', 'LIKE', "%$query%")
                   ->orWhere('media.description', 'LIKE', "%$query%");
@@ -52,12 +53,10 @@ class MediaController extends Controller
             ->where('inventory.quantity', '>', 0)
             ->get();
 
-        return view('searchresults', [
-            'media' => $media,
-            'query' => $query
-        ]);
+        return view('searchresults', compact('media', 'query'));
     }
 
+    // Show details of a specific media item
     public function show($id)
     {
         $media = DB::table('media')
@@ -79,25 +78,30 @@ class MediaController extends Controller
         return view('show', compact('media'));
     }
 
+    // View borrowed items
     public function borrowed()
-    {
-        $activeLoans = DB::table('loans')
-            ->join('media', 'loans.media_id', '=', 'media.id')
-            ->join('branches', 'loans.branch_id', '=', 'branches.id')
-            ->where('loans.user_id', Auth::id())
-            ->where('loans.status', 'active')
-            ->select(
-                'media.*', 
-                'loans.borrowed_date', 
-                'loans.due_date', 
-                'loans.id as loan_id',
-                'branches.name as branch_name'
-            )
-            ->get();
-        
-        return view('borrowed', compact('activeLoans'));
-    }
+{
+    $activeLoans = DB::table('loans')
+        ->join('media', 'loans.media_id', '=', 'media.id') // Ensure the media table is joined
+        ->join('branches', 'loans.branch_id', '=', 'branches.id')
+        ->where('loans.user_id', Auth::id())
+        ->where('loans.status', 'active') // Fetch only active loans
+        ->select(
+            'media.id as media_id', 
+            'media.title', 
+            'media.author',
+            'loans.borrowed_date', 
+            'loans.due_date', 
+            'loans.id as loan_id',
+            'branches.name as branch_name'
+        )
+        ->get();
 
+    return view('borrowed', compact('activeLoans'));
+}
+
+
+    // Wishlist functionality
     public function wishlist()
     {
         $wishlistItems = DB::table('wishlists')
@@ -120,6 +124,7 @@ class MediaController extends Controller
         return view('wishlist', compact('wishlistItems', 'branches'));
     }
 
+    // Borrow media items
     public function borrow($id, Request $request)
     {
         $request->validate([
@@ -133,7 +138,7 @@ class MediaController extends Controller
             ->where('quantity', '>', 0)
             ->first();
 
-        if(!$inventory) {
+        if (!$inventory) {
             return redirect()->back()->with('error', 'This item is not available at the selected branch');
         }
 
@@ -144,11 +149,10 @@ class MediaController extends Controller
             ->where('status', 'active')
             ->first();
 
-        if($existingLoan) {
+        if ($existingLoan) {
             return redirect()->back()->with('error', 'You already have this item borrowed');
         }
 
-        // Start a transaction
         DB::beginTransaction();
 
         try {
@@ -177,6 +181,7 @@ class MediaController extends Controller
         }
     }
 
+    // Return borrowed media items
     public function return($id)
     {
         $loan = DB::table('loans')
@@ -185,19 +190,19 @@ class MediaController extends Controller
             ->where('status', 'active')
             ->first();
     
-        if(!$loan) {
+        if (!$loan) {
             return redirect()->back()->with('error', 'Loan record not found');
         }
     
         DB::beginTransaction();
-
+    
         try {
             // Update loan status
             DB::table('loans')
                 ->where('id', $id)
                 ->update([
                     'status' => 'returned',
-                    'returned_date' => now()
+                    'returned_date' => now(),
                 ]);
     
             // Increment inventory quantity
@@ -205,15 +210,22 @@ class MediaController extends Controller
                 ->where('media_id', $loan->media_id)
                 ->where('branch_id', $loan->branch_id)
                 ->increment('quantity');
-
+    
+            // Send email to the user
+            $user = Auth::user();
+            Mail::raw('Your book has been successfully returned.', function ($message) use ($user) {
+                $message->to($user->email)
+                        ->subject('Book Return Confirmation');
+            });
+    
             DB::commit();
-            return redirect()->back()->with('success', 'Item returned successfully');
+            return redirect()->back()->with('success', 'Item returned successfully, and an email confirmation has been sent.');
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Failed to return item');
         }
     }
-
+    // Add media to wishlist
     public function addToWishlist($id)
     {
         $exists = DB::table('wishlists')
@@ -221,7 +233,7 @@ class MediaController extends Controller
             ->where('media_id', $id)
             ->exists();
 
-        if($exists) {
+        if ($exists) {
             return redirect()->back()->with('error', 'Item already in wishlist');
         }
 
@@ -234,6 +246,7 @@ class MediaController extends Controller
         return redirect()->back()->with('success', 'Added to wishlist');
     }
 
+    // Remove media from wishlist
     public function removeFromWishlist($id)
     {
         DB::table('wishlists')
@@ -244,42 +257,50 @@ class MediaController extends Controller
         return redirect()->back()->with('success', 'Removed from wishlist');
     }
 
+    // Notify manager about media requests
     public function notifyManager(Request $request)
-{
-    // Validate the request
-    $request->validate([
-        'media_id' => 'required|exists:media,id',
-        'branch_id' => 'required|exists:branches,id',
-    ]);
-
-    try {
-        // Get the media details
-        $media = DB::table('media')
-            ->where('id', $request->media_id)
-            ->first();
-
-        // Get the branch manager's user ID
-        $branchManager = DB::table('branches')
-            ->where('id', $request->branch_id)
-            ->first();
-
-        if (!$branchManager || !$branchManager->manager_id) {
-            return back()->with('error', 'Branch manager not found.');
-        }
-
-        // Create the notification
-        DB::table('notifications')->insert([
-            'user_id' => $branchManager->manager_id,
-            'type' => 'procurement',
-            'title' => 'Media Request',
-            'message' => 'A user has requested the media "' . $media->title . '" to be added to your branch.',
-            'status' => 'unread',
-            'created_at' => now()
+    {
+        $request->validate([
+            'media_id' => 'required|exists:media,id',
+            'branch_id' => 'required|exists:branches,id',
         ]);
 
-        return back()->with('success', 'Branch manager has been notified about your request.');
-    } catch (\Exception $e) {
-        return back()->with('error', 'An error occurred while sending the notification.');
+        try {
+            $media = DB::table('media')->where('id', $request->media_id)->first();
+
+            $branchManager = DB::table('branches')
+                ->where('id', $request->branch_id)
+                ->first();
+
+            if (!$branchManager || !$branchManager->manager_id) {
+                return back()->with('error', 'Branch manager not found.');
+            }
+
+            DB::table('notifications')->insert([
+                'user_id' => $branchManager->manager_id,
+                'type' => 'procurement',
+                'title' => 'Media Request',
+                'message' => 'A user has requested the media "' . $media->title . '" to be added to your branch.',
+                'status' => 'unread',
+                'created_at' => now()
+            ]);
+
+            return back()->with('success', 'Branch manager has been notified about your request.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'An error occurred while sending the notification.');
+        }
     }
-}
+
+    // Get inventory for a specific media and branch
+    public function getInventory($mediaId, $branchId)
+    {
+        $inventory = DB::table('inventory')
+            ->where('media_id', $mediaId)
+            ->where('branch_id', $branchId)
+            ->first();
+        
+        return response()->json([
+            'quantity' => $inventory ? $inventory->quantity : 0
+        ]);
+    }
 }
