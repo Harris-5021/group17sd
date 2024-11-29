@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Models\Subscription;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
+
 
 class SubscriptionController extends Controller 
 {
@@ -34,28 +36,43 @@ class SubscriptionController extends Controller
 
    public function updateSubscription(Request $request, $id)
         {
-            // Find the subscription by ID
             $subscription = Subscription::findOrFail($id);
     
-            // Update the fields based on the form inputs
             if ($request->has('plan_type')) {
                 $subscription->plan_type = $request->plan_type;
             }
-            if ($request->has('amount')) {
-                $subscription->amount = $request->amount;
-            }
             if ($request->has('fee_paid')) {
-                $subscription->fee_paid = $request->fee_paid;
+                if($request['fee_paid'] == 'Y')
+                {
+                    $subscription->fee_paid = 1;
+                    $subscription->status = 'Active';
+                } else
+                {
+                    $subscription->fee_paid = 0;
+                    $subscription->status = 'Suspended';
+                }    
             }
-    
-            if($request['fee_paid'] == 1)
+            if($request->has('start_date'))
             {
-                $status = 'Active';
-            } else
-            {
-                $status = 'Suspended';
+                $subscription->start_date = $request->start_date;
+                $startDate = Carbon::parse($request->input('start_date'));
+                $endDate = $startDate->copy()->addMonth();
+                $subscription->end_date = $endDate;
             }
-            // Save the changes to the database
+           
+            if($request['plan_type'] == 'basic')
+            {
+                $subscription->amount = 25.99;
+            }
+            elseif($request['plan_type'] == 'student')
+            {
+                $subscription->amount = 15.99;
+            }
+            elseif($request['plan_type'] == 'premium')
+            {
+                $subscription->amount = 35.99;
+            }
+
             $subscription->save();
     
             return redirect()->back()->with('success', 'Subscription updated successfully.');

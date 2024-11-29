@@ -89,12 +89,11 @@
     </td>
     <td>
     {{$sub -> amount}}<br>
-    <a href ="edit-amount">Edit</a>
     </td>
     <td>{{$sub -> status}}</td>
     <td>
     {{$sub -> start_date}}<br>
-    <a href ="edit-start-date">Edit</a>
+    <a href ="#edit-start-date">Edit</a>
     </td>
     <td>{{$sub -> end_date}}</td>
     <td>{{$sub -> next_billing_date}}</td>
@@ -112,8 +111,38 @@
                 <input type="text" name="plan_type" placeholder="Enter new Plan Type">
                 <div class="modal-buttons">
                     <button type="submit">Save</button>
-                    <a href="#">Cancel</a>
+                    <button><a href="#">Cancel</a></button>
                 </div>
+            </form>
+        </div>
+    </div>
+
+    
+    <div id="edit-start-date" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Edit Start Date</h2>
+            <form action="{{ route('subscription.updateSubscription', $sub->id)}}" method="POST" >
+            @csrf
+                <input type="date" name="start_date" placeholder="Enter new Start Date">
+                <div class="modal-buttons">
+                    <button type="submit">Save</button>
+                    <button><a href="#">Cancel</a></button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="edit-fee-paid" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Edit Fee Paid</h2>
+            <form method="POST" action="{{ route('subscription.updateSubscription', $sub->id) }}">
+                @csrf
+                <select name="fee_paid">
+                    <option value="1" {{ $sub->fee_paid == '1' ? 'selected' : '' }}>Y</option>
+                    <option value="0" {{ $sub->fee_paid == '0' ? 'selected' : '' }}>N</option>
+                </select>
+                <button type="submit">Save</button>
+                <a href="#" class="cancel-btn">Cancel</a>
             </form>
         </div>
     </div>
