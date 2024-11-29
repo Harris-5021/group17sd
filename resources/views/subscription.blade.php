@@ -85,7 +85,7 @@
     <td>{{$sub -> user_id}}</td>
     <td>
     {{$sub -> plan_type}}<br>
-    <a href="#edit-plan-type">Edit</a>
+    <a href="#edit-plan-type-{{$sub->id}}">Edit</a>
     </td>
     <td>
     {{$sub -> amount}}<br>
@@ -93,17 +93,17 @@
     <td>{{$sub -> status}}</td>
     <td>
     {{$sub -> start_date}}<br>
-    <a href ="#edit-start-date">Edit</a>
+    <a href ="#edit-start-date-{{$sub->id}}">Edit</a>
     </td>
     <td>{{$sub -> end_date}}</td>
     <td>{{$sub -> next_billing_date}}</td>
     <td>
     {{ $sub->fee_paid == '1' ? 'Y' : 'N' }}<br>
-    <a href="#edit-fee-paid">Edit</a>
+    <a href="#edit-fee-paid-{{$sub->id}}">Edit</a>
     </td>
 
 
-    <div id="edit-plan-type" class="modal-overlay">
+    <div id="edit-plan-type-{{$sub->id}}" class="modal-overlay">
         <div class="modal-content">
             <h2>Edit Plan Type</h2>
             <form action="{{ route('subscription.updateSubscription', $sub->id)}}" method="POST" >
@@ -118,7 +118,7 @@
     </div>
 
     
-    <div id="edit-start-date" class="modal-overlay">
+    <div id="edit-start-date-{{$sub->id}}" class="modal-overlay">
         <div class="modal-content">
             <h2>Edit Start Date</h2>
             <form action="{{ route('subscription.updateSubscription', $sub->id)}}" method="POST" >
@@ -132,7 +132,7 @@
         </div>
     </div>
 
-    <div id="edit-fee-paid" class="modal-overlay">
+    <div id="edit-fee-paid-{{$sub->id}}" class="modal-overlay">
         <div class="modal-content">
             <h2>Edit Fee Paid</h2>
             <form method="POST" action="{{ route('subscription.updateSubscription', $sub->id) }}">
