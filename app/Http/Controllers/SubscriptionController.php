@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
+use App\Models\Subscription;
 use Illuminate\Support\Facades\Auth;
 
 class SubscriptionController extends Controller 
@@ -31,32 +32,39 @@ class SubscriptionController extends Controller
 
     }
 
-    public function updateSubscription(Request $request, $id)
-    {
-        if($request['fee_paid'] == 1)
+   public function updateSubscription(Request $request, $id)
         {
-            $status = 'Active';
-        } else
-        {
-            $status = 'Suspended';
+            // Find the subscription by ID
+            $subscription = Subscription::findOrFail($id);
+    
+            // Update the fields based on the form inputs
+            if ($request->has('plan_type')) {
+                $subscription->plan_type = $request->plan_type;
+            }
+            if ($request->has('amount')) {
+                $subscription->amount = $request->amount;
+            }
+            if ($request->has('fee_paid')) {
+                $subscription->fee_paid = $request->fee_paid;
+            }
+    
+            if($request['fee_paid'] == 1)
+            {
+                $status = 'Active';
+            } else
+            {
+                $status = 'Suspended';
+            }
+            // Save the changes to the database
+            $subscription->save();
+    
+            return redirect()->back()->with('success', 'Subscription updated successfully.');
         }
+      
 
-        DB::updateSubscription(
-            'UPDATE subscriptions
-            SET plan_type = :plan_type, amount = :amount, status = :status, fee_paid = :fee_paid
-            WHERE id = :id',
-            [
-                'plan_type' => $request['plan_type'],
-                'amount' => $request['amount'],
-                'status' => $status,
-                'fee_paid' => $request['fee_paid'],
-                'id' => $id,
-            ]
-            );
-            return redirect()->back()->with('success', 'Subscription updated successfully!');
-
+   
     }
 
 
-}
+
 

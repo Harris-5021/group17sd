@@ -107,7 +107,7 @@
     <div id="edit-plan-type" class="modal-overlay">
         <div class="modal-content">
             <h2>Edit Plan Type</h2>
-            <form method="POST" action="{{ route('subscription.updateSubscription', ['id' => $sub->id]) }}">
+            <form action="{{ route('subscription.updateSubscription', $sub->id)}}" method="POST" >
             @csrf
                 <input type="text" name="plan_type" placeholder="Enter new Plan Type">
                 <div class="modal-buttons">

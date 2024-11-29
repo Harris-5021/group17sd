@@ -39,4 +39,9 @@ class User extends Authenticatable
 {
     return $this->belongsTo(Branch::class);
 }
+
+public function subscription()
+{
+    return $this->hasOne(Subscription::class);
+}
 }
