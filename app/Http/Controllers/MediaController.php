@@ -103,26 +103,30 @@ class MediaController extends Controller
 
     // Wishlist functionality
     public function wishlist()
-    {
-        $wishlistItems = DB::table('wishlists')
-            ->join('media', 'wishlists.media_id', '=', 'media.id')
-            ->leftJoin('inventory', 'media.id', '=', 'inventory.media_id')
-            ->leftJoin('branches', 'inventory.branch_id', '=', 'branches.id')
-            ->where('wishlists.user_id', Auth::id())
-            ->select(
-                'media.*',
-                'inventory.quantity',
-                'inventory.branch_id',
-                'branches.name as branch_name'
-            )
-            ->get();
-            
-        $branches = DB::table('branches')
-            ->select('id', 'name')
-            ->get();
-            
-        return view('wishlist', compact('wishlistItems', 'branches'));
-    }
+{
+    $wishlistItems = DB::table('wishlists')
+        ->join('media', 'wishlists.media_id', '=', 'media.id')
+        ->leftJoin('inventory', 'media.id', '=', 'inventory.media_id')
+        ->leftJoin('branches', 'inventory.branch_id', '=', 'branches.id')
+        ->where('wishlists.user_id', Auth::id())
+        ->select(
+            'wishlists.id',
+            'wishlists.priority',
+            'media.*',
+            'inventory.quantity',
+            'inventory.branch_id',
+            'branches.name as branch_name'
+        )
+        ->orderBy('wishlists.priority', 'asc') // Order by priority
+        ->get();
+        
+    $branches = DB::table('branches')
+        ->select('id', 'name')
+        ->get();
+        
+    return view('wishlist', compact('wishlistItems', 'branches'));
+}
+
 
     // Borrow media items
     public function borrow($id, Request $request)
@@ -382,4 +386,19 @@ public function processReturn(Request $request)
             'quantity' => $inventory ? $inventory->quantity : 0
         ]);
     }
+
+ 
+    public function updatePriority(Request $request)
+    {
+        $order = $request->input('order');
+    
+        foreach ($order as $item) {
+            DB::table('wishlists')
+                ->where('id', $item['id']) // Match the correct item by its ID
+                ->update(['priority' => $item['priority']]); // Update the priority
+        }
+    
+        return response()->json(['success' => true]); // Respond with success
+    }
+    
 }
