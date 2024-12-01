@@ -77,6 +77,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/return/{id}/process', [MediaController::class, 'processReturn'])->name('return.process');
     Route::post('/return/process', [MediaController::class, 'processReturn'])->name('return.process');
     Route::post('/wishlist/update-priority', [MediaController::class, 'updatePriority'])->name('wishlist.updatePriority');
+    Route::post('/wishlist/notifications/update', [MediaController::class, 'updateNotificationPreferences'])->name('wishlist.updateNotifications');
 
 });
     // Media routes

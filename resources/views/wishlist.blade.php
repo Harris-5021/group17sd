@@ -72,17 +72,30 @@
     <p>Drag and drop items to reorder your wishlist by priority.</p>
     <div class="wishlist-container" id="wishlist">
         @foreach ($wishlistItems as $item)
-            <div class="wishlist-item" data-id="{{ $item->id }}">
-                <h3>{{ $item->title }}</h3>
-                <p>By {{ $item->author }}</p>
-                <p>Type: {{ $item->type }}</p>
-                <p>Priority: <span class="priority-value">{{ $item->priority ?? 'Not Set' }}</span></p>
-                <form action="{{ route('wishlist.remove', $item->id) }}" method="POST" style="margin-top: 10px;">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="remove-btn">Remove</button>
-                </form>
+        <div class="wishlist-item" data-id="{{ $item->id }}">
+            <h3>{{ $item->title }}</h3>
+            <p>By {{ $item->author }}</p>
+            <p>Type: {{ $item->type }}</p>
+            <p>Priority: <span class="priority-value">{{ $item->priority ?? 'Not Set' }}</span></p>
+            
+            <!-- Add notification toggle -->
+            <div class="notification-toggle">
+                <label class="switch">
+                    <input type="checkbox" 
+                           class="notification-checkbox" 
+                           data-id="{{ $item->id }}"
+                           {{ $item->notification_preferences ? 'checked' : '' }}>
+                    <span class="slider round"></span>
+                </label>
+                <span>Notify when available</span>
             </div>
+        
+            <form action="{{ route('wishlist.remove', $item->id) }}" method="POST" style="margin-top: 10px;">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="remove-btn">Remove</button>
+            </form>
+        </div>
         @endforeach
     </div>
     <button id="save-priority" class="save-priority">Save Priority</button>
@@ -95,10 +108,10 @@
         const sortable = new Sortable(wishlist, {
             animation: 150,
             onEnd: function () {
-                updatePriorities(); // Update priorities after reordering
+                updatePriorities();
             }
         });
-
+    
         // Update priority numbers in the UI
         function updatePriorities() {
             const items = document.querySelectorAll('.wishlist-item');
@@ -106,38 +119,68 @@
                 item.querySelector('.priority-value').textContent = index + 1;
             });
         }
-
-        // Save priorities to the server
+    
+        // Handle notification toggles
+        document.querySelectorAll('.notification-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const wishlistId = this.dataset.id;
+                const isChecked = this.checked;
+    
+                fetch('/wishlist/notifications/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        wishlist_id: wishlistId,
+                        notifications_enabled: isChecked
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Notification preferences updated!');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to update notification preferences');
+                });
+            });
+        });
+    
+        // Save priorities
         document.getElementById('save-priority').addEventListener('click', function () {
             const items = document.querySelectorAll('.wishlist-item');
             const order = Array.from(items).map((item, index) => ({
                 id: item.dataset.id,
-                priority: index + 1
+                priority: index + 1  // Start from 1 instead of 0
             }));
-
+    
             fetch("{{ route('wishlist.updatePriority') }}", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 },
-                body: JSON.stringify({ order }),
+                body: JSON.stringify({ order: order })
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Priority updated successfully!');
-                    } else {
-                        alert('Failed to update priority.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while saving priority.');
-                });
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Priorities updated successfully!');
+                } else {
+                    alert('Failed to update priorities.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while saving priorities.');
+            });
         });
     });
-</script>
+    </script>
 
 </body>
 </html>

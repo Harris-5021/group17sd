@@ -102,7 +102,8 @@ class MediaController extends Controller
 
 
     // Wishlist functionality
-    public function wishlist()
+   // Update your wishlist method in MediaController
+public function wishlist()
 {
     $wishlistItems = DB::table('wishlists')
         ->join('media', 'wishlists.media_id', '=', 'media.id')
@@ -112,12 +113,13 @@ class MediaController extends Controller
         ->select(
             'wishlists.id',
             'wishlists.priority',
+            'wishlists.notification_preferences', // Add this line
             'media.*',
             'inventory.quantity',
             'inventory.branch_id',
             'branches.name as branch_name'
         )
-        ->orderBy('wishlists.priority', 'asc') // Order by priority
+        ->orderBy('wishlists.priority', 'asc')
         ->get();
         
     $branches = DB::table('branches')
@@ -126,7 +128,6 @@ class MediaController extends Controller
         
     return view('wishlist', compact('wishlistItems', 'branches'));
 }
-
 
     // Borrow media items
     public function borrow($id, Request $request)
@@ -218,7 +219,32 @@ public function return($id)
             ->where('branch_id', $loan->branch_id)
             ->increment('quantity');
 
-        // Send email to the user
+        // Add the new code HERE, after incrementing inventory
+        $updatedQuantity = DB::table('inventory')
+            ->where('media_id', $loan->media_id)
+            ->where('branch_id', $loan->branch_id)
+            ->value('quantity');
+
+        if($updatedQuantity > 0) {  // If item is now in stock
+            // Get the media title
+            $media = DB::table('media')->where('id', $loan->media_id)->first();
+            
+            // Check for users who want to be notified
+            $wishlistUsers = DB::table('wishlists')
+                ->join('users', 'wishlists.user_id', '=', 'users.id')
+                ->where('wishlists.media_id', $loan->media_id)
+                ->where('notification_preferences', 'enabled')
+                ->get();
+
+            foreach($wishlistUsers as $wishlistUser) {
+                Mail::raw("Good news! '{$media->title}' is now available at the library.", function ($message) use ($wishlistUser) {
+                    $message->to($wishlistUser->email)
+                            ->subject('Wishlist Item Now Available');
+                });
+            }
+        }
+
+        // Send email to the user who returned the item
         $user = Auth::user();
         Mail::raw('Your book has been successfully returned.', function ($message) use ($user) {
             $message->to($user->email)
@@ -410,16 +436,61 @@ public function processReturn(Request $request)
 
  
     public function updatePriority(Request $request)
-    {
-        $order = $request->input('order');
+{
+    $order = $request->input('order');
     
+    DB::beginTransaction();
+    try {
         foreach ($order as $item) {
             DB::table('wishlists')
-                ->where('id', $item['id']) // Match the correct item by its ID
-                ->update(['priority' => $item['priority']]); // Update the priority
+                ->where('id', $item['id'])
+                ->where('user_id', Auth::id()) // Add security check
+                ->update(['priority' => $item['priority']]);
         }
-    
-        return response()->json(['success' => true]); // Respond with success
+        DB::commit();
+        return response()->json(['success' => true]);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
     }
+}
+
+public function updateNotificationPreferences(Request $request)
+{
+    $request->validate([
+        'wishlist_id' => 'required|exists:wishlists,id',
+        'notifications_enabled' => 'required|boolean'
+    ]);
+
+    try {
+        DB::table('wishlists')
+            ->where('id', $request->wishlist_id)
+            ->where('user_id', Auth::id())
+            ->update([
+                'notification_preferences' => $request->notifications_enabled ? 'enabled' : null
+            ]);
+
+        // Send confirmation email
+        $user = Auth::user();
+        $wishlistItem = DB::table('wishlists')
+            ->join('media', 'wishlists.media_id', '=', 'media.id')
+            ->where('wishlists.id', $request->wishlist_id)
+            ->select('media.title')
+            ->first();
+
+        $message = $request->notifications_enabled 
+            ? "You will now receive email notifications when '{$wishlistItem->title}' becomes available."
+            : "You have disabled email notifications for '{$wishlistItem->title}'.";
+
+        Mail::raw($message, function ($mail) use ($user) {
+            $mail->to($user->email)
+                 ->subject('Wishlist Notification Settings Updated');
+        });
+
+        return response()->json(['success' => true]);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+    }
+}
     
 }
