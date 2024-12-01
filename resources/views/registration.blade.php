@@ -19,7 +19,7 @@
                 <ul>
                     <li><a href="{{ route('home') }}">Home</a></li>
                     <li><a href="{{ route('login') }}">Login</a></li>
-                    <li><a href="{{ route('test') }}">Contact us</a></li>
+                    <li><a href="{{ route('home') }}">Contact us</a></li>
                 </ul>
             </nav>
            

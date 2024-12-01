@@ -357,44 +357,56 @@ public function processReturn(Request $request)
 }
     // Add media to wishlist
     public function addToWishlist($id)
-    {
-        // Check if the item is already in the wishlist
-        $exists = DB::table('wishlists')
-            ->where('user_id', Auth::id())
-            ->where('media_id', $id)
-            ->exists();
-    
-        if ($exists) {
-            return redirect()->back()->with('error', 'Item already in wishlist');
-        }
-    
-        // Add the item to the wishlist
-        DB::table('wishlists')->insert([
-            'user_id' => Auth::id(),
-            'media_id' => $id,
-            'priority' => null, // Default priority
+{
+    // Check if the item is already in the wishlist
+    $exists = DB::table('wishlists')
+        ->where('user_id', Auth::id())
+        ->where('media_id', $id)
+        ->exists();
+
+    if ($exists) {
+        return redirect()->back()->with('error', 'Item already in wishlist');
+    }
+
+    // Add the item to the wishlist
+    DB::table('wishlists')->insert([
+        'user_id' => Auth::id(),
+        'media_id' => $id,
+        'priority' => null,
+        'created_at' => now(),
+    ]);
+
+    // Get more detailed media information
+    $media = DB::table('media')->where('id', $id)->first();
+    $user = Auth::user();
+    $branchManager = DB::table('branches')
+        ->where('id', Auth::user()->branch_id)
+        ->first();
+
+    if ($branchManager && $branchManager->manager_id) {
+        // Create a more detailed notification message
+        $notificationMessage = sprintf(
+            "User: %s\nMedia Details:\n- Title: %s\n- Author: %s\n- Type: %s\n- Publication Year: %s\nRequested for Branch: %s",
+            $user->name,
+            $media->title,
+            $media->author,
+            $media->type,
+            $media->publication_year,
+            $branchManager->name
+        );
+
+        DB::table('notifications')->insert([
+            'user_id' => $branchManager->manager_id,
+            'type' => 'wishlist',
+            'title' => 'New Wishlist Request',
+            'message' => $notificationMessage,
+            'status' => 'unread',
             'created_at' => now(),
         ]);
-    
-        // Notify the branch manager
-        $media = DB::table('media')->where('id', $id)->first();
-        $branchManager = DB::table('branches')
-            ->where('id', Auth::user()->branch_id)
-            ->first();
-    
-        if ($branchManager && $branchManager->manager_id) {
-            DB::table('notifications')->insert([
-                'user_id' => $branchManager->manager_id,
-                'type' => 'wishlist',
-                'title' => 'New Wishlist Request',
-                'message' => Auth::user()->name . ' has added "' . $media->title . '" to their wishlist.',
-                'status' => 'unread',
-                'created_at' => now(),
-            ]);
-        }
-    
-        return redirect()->back()->with('success', 'Item added to wishlist. The branch manager has been notified.');
     }
+
+    return redirect()->back()->with('success', 'Item added to wishlist. The branch manager has been notified.');
+}
     
 
     // Remove media from wishlist
