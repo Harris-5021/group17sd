@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use App\Models\Media;
 class MediaController extends Controller
 {
     public function __construct()
@@ -525,5 +526,75 @@ public function updateNotificationPreferences(Request $request)
         return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
     }
 }
-    
+public function requestMedia(Request $request)
+{
+    $request->validate([
+        'title' => 'required|string|max:255',
+        'author' => 'required|string|max:255',
+        'media_type' => 'required|in:Book,DVD,Magazine,E-Book,Audio',
+        'additional_notes' => 'nullable|string|max:1000'
+    ]);
+
+    DB::beginTransaction();
+
+    try {
+        // Create a 'pending' media record
+        $media = Media::create([
+            'title' => $request->title,
+            'author' => $request->author,
+            'type' => $request->media_type,
+            'status' => 'pending'  // Special status for requested items
+        ]);
+
+        // Add to user's wishlist
+        DB::table('wishlists')->insert([
+            'user_id' => Auth::id(),
+            'media_id' => $media->id,
+            'notification_preferences' => 'enabled',  // Auto-enable notifications
+            'created_at' => now()
+        ]);
+
+        // Notify branch manager
+        $branchManager = DB::table('branches')
+            ->where('id', Auth::user()->branch_id)
+            ->first();
+
+        if ($branchManager && $branchManager->manager_id) {
+            $notificationMessage = sprintf(
+                "New Media Request:\n- Title: %s\n- Author: %s\n- Type: %s\n- Requested by: %s\n- Additional Notes: %s",
+                $request->title,
+                $request->author,
+                $request->media_type,
+                Auth::user()->name,
+                $request->additional_notes ?? 'None'
+            );
+
+            DB::table('notifications')->insert([
+                'user_id' => $branchManager->manager_id,
+                'type' => 'media_request',
+                'title' => 'New Media Request',
+                'message' => $notificationMessage,
+                'status' => 'unread',
+                'created_at' => now()
+            ]);
+        }
+
+        DB::commit();
+        return redirect()->back()->with('success', 'Media request submitted successfully. You will be notified when it becomes available.');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->back()->with('error', 'Failed to submit media request. Please try again.');
+    }
+}
+
+
+
+
+
+
+
+
+
+
 }

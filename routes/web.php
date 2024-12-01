@@ -80,6 +80,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/wishlist/update-priority', [MediaController::class, 'updatePriority'])->name('wishlist.updatePriority');
     Route::post('/wishlist/notifications/update', [MediaController::class, 'updateNotificationPreferences'])->name('wishlist.updateNotifications');
 
+    Route::post('/wishlist/request-media', [MediaController::class, 'requestMedia'])->name('wishlist.requestMedia');
+
+
 });
     // Media routes
     Route::get('/search', [MediaController::class, 'search'])->name('search');
