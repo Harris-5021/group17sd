@@ -67,8 +67,31 @@
                             </tr>
                         @endforeach
                     </tbody>
+                    <!-- At the bottom of your table -->
+<div class="pagination-container">
+    <nav>
+        <ul class="pagination">
+            @if($processedReturns->onFirstPage())
+                <li class="disabled">&laquo; Previous</li>
+            @else
+                <li><a href="{{ $processedReturns->previousPageUrl() }}">&laquo; Previous</a></li>
+            @endif
+
+            @for($i = 1; $i <= $processedReturns->lastPage(); $i++)
+                <li class="{{ ($processedReturns->currentPage() == $i) ? 'active' : '' }}">
+                    <a href="{{ $processedReturns->url($i) }}">{{ $i }}</a>
+                </li>
+            @endfor
+
+            @if($processedReturns->hasMorePages())
+                <li><a href="{{ $processedReturns->nextPageUrl() }}">Next &raquo;</a></li>
+            @else
+                <li class="disabled">Next &raquo;</li>
+            @endif
+        </ul>
+    </nav>
+</div>
                 </table>
-                    {{ $processedReturns->links() }}
                 @else
                     <p>No processed returns found.</p>
                 @endif
@@ -197,6 +220,59 @@
     border-radius: 4px;
     cursor: pointer;
 }
+
+</style>
+<style>
+    .pagination-container {
+        margin: 20px 0;
+        text-align: center;
+    }
+    
+    .pagination {
+        display: inline-flex;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        gap: 10px;
+    }
+    
+    .pagination li {
+        display: inline-block;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    
+    .pagination li.active {
+        background-color: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
+    
+    .pagination li.disabled {
+        color: #6c757d;
+        cursor: not-allowed;
+        background-color: #f8f9fa;
+    }
+    
+    .pagination li a {
+        text-decoration: none;
+        color: inherit;
+    }
+    
+    .pagination li:hover:not(.active):not(.disabled) {
+        background-color: #e9ecef;
+    }
+    
+    /* Results count styling */
+    .results-count {
+        text-align: center;
+        color: #6c757d;
+        margin: 10px 0;
+        font-size: 0.9em;
+    }
+    </style>
 </style>
 
 <script>

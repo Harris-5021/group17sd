@@ -397,26 +397,27 @@ public function searchReturns(Request $request)
 {
     $query = $request->input('query');
     
-    $returns = DB::table('loans')
+    $processedReturns = DB::table('loans')
         ->join('users', 'loans.user_id', '=', 'users.id')
         ->join('media', 'loans.media_id', '=', 'media.id')
         ->where(function($q) use ($query) {
-            $q->where('media.id', 'LIKE', "%$query%")
-              ->orWhere('users.id', 'LIKE', "%$query%")
-              ->orWhere('media.title', 'LIKE', "%$query%")
-              ->orWhere('users.name', 'LIKE', "%$query%");
+            $q->where('media.title', 'LIKE', "%{$query}%")
+              ->orWhere('users.name', 'LIKE', "%{$query}%")
+              ->orWhere('media.id', 'LIKE', "%{$query}%")
+              ->orWhere('users.id', 'LIKE', "%{$query}%");
         })
-        ->where('loans.status', '=', 'active')
         ->select(
             'loans.id',
-            'loans.media_id',
-            'loans.due_date',
             'media.title',
-            'users.name as user_name'
+            'users.name as user_name',
+            'loans.returned_date',
+            'loans.status',
+            'loans.damaged_notes'
         )
-        ->get();
+        ->orderBy('loans.returned_date', 'desc')
+        ->paginate(15);
 
-    return view('search-results', compact('returns', 'query'));
+    return view('processed-returns', compact('processedReturns'));
 }
 
 public function viewFines()

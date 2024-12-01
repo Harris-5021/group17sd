@@ -76,6 +76,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/fines', [DashboardController::class, 'viewFines'])->name('fines');
     Route::post('/return/{id}/process', [MediaController::class, 'processReturn'])->name('return.process');
     Route::post('/return/process', [MediaController::class, 'processReturn'])->name('return.process');
+    
 });
     // Media routes
     Route::get('/search', [MediaController::class, 'search'])->name('search');
