@@ -123,27 +123,32 @@ class MediaController extends Controller
 
 
     // Wishlist functionality
-    public function wishlist()
-    {
-        $wishlistItems = DB::table('wishlists')
-            ->join('media', 'wishlists.media_id', '=', 'media.id')
-            ->leftJoin('inventory', 'media.id', '=', 'inventory.media_id')
-            ->leftJoin('branches', 'inventory.branch_id', '=', 'branches.id')
-            ->where('wishlists.user_id', Auth::id())
-            ->select(
-                'media.*',
-                'inventory.quantity',
-                'inventory.branch_id',
-                'branches.name as branch_name'
-            )
-            ->get();
-            
-        $branches = DB::table('branches')
-            ->select('id', 'name')
-            ->get();
-            
-        return view('wishlist', compact('wishlistItems', 'branches'));
-    }
+   // Update your wishlist method in MediaController
+public function wishlist()
+{
+    $wishlistItems = DB::table('wishlists')
+        ->join('media', 'wishlists.media_id', '=', 'media.id')
+        ->leftJoin('inventory', 'media.id', '=', 'inventory.media_id')
+        ->leftJoin('branches', 'inventory.branch_id', '=', 'branches.id')
+        ->where('wishlists.user_id', Auth::id())
+        ->select(
+            'wishlists.id',
+            'wishlists.priority',
+            'wishlists.notification_preferences', // Add this line
+            'media.*',
+            'inventory.quantity',
+            'inventory.branch_id',
+            'branches.name as branch_name'
+        )
+        ->orderBy('wishlists.priority', 'asc')
+        ->get();
+        
+    $branches = DB::table('branches')
+        ->select('id', 'name')
+        ->get();
+        
+    return view('wishlist', compact('wishlistItems', 'branches'));
+}
 
     // Borrow media items
     public function borrow($id, Request $request)
@@ -203,69 +208,194 @@ class MediaController extends Controller
     }
 
     // Return borrowed media items
-    public function return($id)
-    {
-        $loan = DB::table('loans')
-            ->where('id', $id)
-            ->where('user_id', Auth::id())
-            ->where('status', 'active')
-            ->first();
-    
-        if (!$loan) {
-            return redirect()->back()->with('error', 'Loan record not found');
-        }
-    
-        DB::beginTransaction();
-    
-        try {
-            // Update loan status
-            DB::table('loans')
-                ->where('id', $id)
-                ->update([
-                    'status' => 'returned',
-                    'returned_date' => now(),
-                ]);
-    
-            // Increment inventory quantity
-            DB::table('inventory')
-                ->where('media_id', $loan->media_id)
-                ->where('branch_id', $loan->branch_id)
-                ->increment('quantity');
-    
-            // Send email to the user
-            $user = Auth::user();
-            Mail::raw('Your book has been successfully returned.', function ($message) use ($user) {
-                $message->to($user->email)
-                        ->subject('Book Return Confirmation');
-            });
-    
-            DB::commit();
-            return redirect()->back()->with('success', 'Item returned successfully, and an email confirmation has been sent.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Failed to return item');
-        }
+   
+// In MediaController.php
+
+public function return($id)
+{
+    $loan = DB::table('loans')
+        ->where('id', $id)
+        ->where('user_id', Auth::id())
+        ->where('status', 'active')
+        ->first();
+
+    if (!$loan) {
+        return redirect()->back()->with('error', 'Loan record not found');
     }
+
+    DB::beginTransaction();
+
+    try {
+        // Update loan status
+        DB::table('loans')
+            ->where('id', $id)
+            ->update([
+                'status' => 'returned',
+                'returned_date' => now(),
+            ]);
+
+        // Increment inventory quantity
+        DB::table('inventory')
+            ->where('media_id', $loan->media_id)
+            ->where('branch_id', $loan->branch_id)
+            ->increment('quantity');
+
+        // Add the new code HERE, after incrementing inventory
+        $updatedQuantity = DB::table('inventory')
+            ->where('media_id', $loan->media_id)
+            ->where('branch_id', $loan->branch_id)
+            ->value('quantity');
+
+        if($updatedQuantity > 0) {  // If item is now in stock
+            // Get the media title
+            $media = DB::table('media')->where('id', $loan->media_id)->first();
+            
+            // Check for users who want to be notified
+            $wishlistUsers = DB::table('wishlists')
+                ->join('users', 'wishlists.user_id', '=', 'users.id')
+                ->where('wishlists.media_id', $loan->media_id)
+                ->where('notification_preferences', 'enabled')
+                ->get();
+
+            foreach($wishlistUsers as $wishlistUser) {
+                Mail::raw("Good news! '{$media->title}' is now available at the library.", function ($message) use ($wishlistUser) {
+                    $message->to($wishlistUser->email)
+                            ->subject('Wishlist Item Now Available');
+                });
+            }
+        }
+
+        // Send email to the user who returned the item
+        $user = Auth::user();
+        Mail::raw('Your book has been successfully returned.', function ($message) use ($user) {
+            $message->to($user->email)
+                    ->subject('Book Return Confirmation');
+        });
+
+        DB::commit();
+        return redirect()->back()->with('success', 'Item returned successfully, and an email confirmation has been sent.');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->back()->with('error', 'Failed to return item');
+    }
+}
+
+
+public function showReturnForm($id)
+{
+    $loan = DB::table('loans')
+        ->join('users', 'loans.user_id', '=', 'users.id')
+        ->join('media', 'loans.media_id', '=', 'media.id')
+        ->where('loans.id', $id)
+        ->where('loans.status', 'active')
+        ->select('loans.*', 'media.title', 'users.name as user_name')
+        ->first();
+
+    if (!$loan) {
+        return redirect()->back()->with('error', 'Loan record not found');
+    }
+
+    return view('return-form', compact('loan'));
+}
+
+
+public function processReturn(Request $request)
+{
+    // Verify user is a librarian
+    if (Auth::user()->role !== 'librarian') {
+        return redirect()->back()->with('error', 'Unauthorized access');
+    }
+
+    $loan = DB::table('loans')
+        ->where('id', $request->loan_id)
+        ->where('status', 'returned')  // Only process items that have been returned
+        ->first();
+
+    if (!$loan) {
+        return redirect()->back()->with('error', 'Loan record not found');
+    }
+
+    DB::beginTransaction();
+
+    try {
+        // Update to damaged if damage notes provided
+        if ($request->has('damage_notes')) {
+            DB::table('loans')
+                ->where('id', $request->loan_id)
+                ->update([
+                    'status' => 'damaged',
+                    'damaged_notes' => $request->damage_notes
+                ]);
+        }
+
+        // Create fine if specified
+        if ($request->filled('fine_amount') && $request->fine_amount > 0) {
+            DB::table('fines')->insert([
+                'loan_id' => $loan->id,
+                'user_id' => $loan->user_id,
+                'amount' => $request->fine_amount,
+                'reason' => $request->has('damage_notes') ? 'damage' : 'overdue',
+                'status' => 'pending',
+                'due_date' => now()->addDays(30),
+                'created_at' => now()
+            ]);
+
+            // Notify user of fine
+            $user = DB::table('users')->find($loan->user_id);
+            Mail::raw('A fine has been added to your account for returned item.', function ($message) use ($user) {
+                $message->to($user->email)
+                        ->subject('Library Fine Notice');
+            });
+        }
+
+        DB::commit();
+        return redirect()->back()->with('success', 'Return processed successfully');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->back()->with('error', 'Failed to process return: ' . $e->getMessage());
+    }
+}
     // Add media to wishlist
     public function addToWishlist($id)
     {
+        // Check if the item is already in the wishlist
         $exists = DB::table('wishlists')
             ->where('user_id', Auth::id())
             ->where('media_id', $id)
             ->exists();
-
+    
         if ($exists) {
             return redirect()->back()->with('error', 'Item already in wishlist');
         }
-
+    
+        // Add the item to the wishlist
         DB::table('wishlists')->insert([
             'user_id' => Auth::id(),
             'media_id' => $id,
-            'created_at' => now()
+            'priority' => null, // Default priority
+            'created_at' => now(),
         ]);
-
-        return redirect()->back()->with('success', 'Added to wishlist');
+    
+        // Notify the branch manager
+        $media = DB::table('media')->where('id', $id)->first();
+        $branchManager = DB::table('branches')
+            ->where('id', Auth::user()->branch_id)
+            ->first();
+    
+        if ($branchManager && $branchManager->manager_id) {
+            DB::table('notifications')->insert([
+                'user_id' => $branchManager->manager_id,
+                'type' => 'wishlist',
+                'title' => 'New Wishlist Request',
+                'message' => Auth::user()->name . ' has added "' . $media->title . '" to their wishlist.',
+                'status' => 'unread',
+                'created_at' => now(),
+            ]);
+        }
+    
+        return redirect()->back()->with('success', 'Item added to wishlist. The branch manager has been notified.');
     }
+    
 
     // Remove media from wishlist
     public function removeFromWishlist($id)
@@ -324,4 +454,64 @@ class MediaController extends Controller
             'quantity' => $inventory ? $inventory->quantity : 0
         ]);
     }
+
+ 
+    public function updatePriority(Request $request)
+{
+    $order = $request->input('order');
+    
+    DB::beginTransaction();
+    try {
+        foreach ($order as $item) {
+            DB::table('wishlists')
+                ->where('id', $item['id'])
+                ->where('user_id', Auth::id()) // Add security check
+                ->update(['priority' => $item['priority']]);
+        }
+        DB::commit();
+        return response()->json(['success' => true]);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+    }
+}
+
+public function updateNotificationPreferences(Request $request)
+{
+    $request->validate([
+        'wishlist_id' => 'required|exists:wishlists,id',
+        'notifications_enabled' => 'required|boolean'
+    ]);
+
+    try {
+        DB::table('wishlists')
+            ->where('id', $request->wishlist_id)
+            ->where('user_id', Auth::id())
+            ->update([
+                'notification_preferences' => $request->notifications_enabled ? 'enabled' : null
+            ]);
+
+        // Send confirmation email
+        $user = Auth::user();
+        $wishlistItem = DB::table('wishlists')
+            ->join('media', 'wishlists.media_id', '=', 'media.id')
+            ->where('wishlists.id', $request->wishlist_id)
+            ->select('media.title')
+            ->first();
+
+        $message = $request->notifications_enabled 
+            ? "You will now receive email notifications when '{$wishlistItem->title}' becomes available."
+            : "You have disabled email notifications for '{$wishlistItem->title}'.";
+
+        Mail::raw($message, function ($mail) use ($user) {
+            $mail->to($user->email)
+                 ->subject('Wishlist Notification Settings Updated');
+        });
+
+        return response()->json(['success' => true]);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+    }
+}
+    
 }
