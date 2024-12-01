@@ -182,49 +182,128 @@ class MediaController extends Controller
     }
 
     // Return borrowed media items
-    public function return($id)
-    {
-        $loan = DB::table('loans')
-            ->where('id', $id)
-            ->where('user_id', Auth::id())
-            ->where('status', 'active')
-            ->first();
-    
-        if (!$loan) {
-            return redirect()->back()->with('error', 'Loan record not found');
-        }
-    
-        DB::beginTransaction();
-    
-        try {
-            // Update loan status
-            DB::table('loans')
-                ->where('id', $id)
-                ->update([
-                    'status' => 'returned',
-                    'returned_date' => now(),
-                ]);
-    
-            // Increment inventory quantity
-            DB::table('inventory')
-                ->where('media_id', $loan->media_id)
-                ->where('branch_id', $loan->branch_id)
-                ->increment('quantity');
-    
-            // Send email to the user
-            $user = Auth::user();
-            Mail::raw('Your book has been successfully returned.', function ($message) use ($user) {
-                $message->to($user->email)
-                        ->subject('Book Return Confirmation');
-            });
-    
-            DB::commit();
-            return redirect()->back()->with('success', 'Item returned successfully, and an email confirmation has been sent.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Failed to return item');
-        }
+   
+// In MediaController.php
+
+public function return($id)
+{
+    $loan = DB::table('loans')
+        ->where('id', $id)
+        ->where('user_id', Auth::id())
+        ->where('status', 'active')
+        ->first();
+
+    if (!$loan) {
+        return redirect()->back()->with('error', 'Loan record not found');
     }
+
+    DB::beginTransaction();
+
+    try {
+        // Update loan status
+        DB::table('loans')
+            ->where('id', $id)
+            ->update([
+                'status' => 'returned',
+                'returned_date' => now(),
+            ]);
+
+        // Increment inventory quantity
+        DB::table('inventory')
+            ->where('media_id', $loan->media_id)
+            ->where('branch_id', $loan->branch_id)
+            ->increment('quantity');
+
+        // Send email to the user
+        $user = Auth::user();
+        Mail::raw('Your book has been successfully returned.', function ($message) use ($user) {
+            $message->to($user->email)
+                    ->subject('Book Return Confirmation');
+        });
+
+        DB::commit();
+        return redirect()->back()->with('success', 'Item returned successfully, and an email confirmation has been sent.');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->back()->with('error', 'Failed to return item');
+    }
+}
+
+
+public function showReturnForm($id)
+{
+    $loan = DB::table('loans')
+        ->join('users', 'loans.user_id', '=', 'users.id')
+        ->join('media', 'loans.media_id', '=', 'media.id')
+        ->where('loans.id', $id)
+        ->where('loans.status', 'active')
+        ->select('loans.*', 'media.title', 'users.name as user_name')
+        ->first();
+
+    if (!$loan) {
+        return redirect()->back()->with('error', 'Loan record not found');
+    }
+
+    return view('return-form', compact('loan'));
+}
+
+
+public function processReturn(Request $request)
+{
+    // Verify user is a librarian
+    if (Auth::user()->role !== 'librarian') {
+        return redirect()->back()->with('error', 'Unauthorized access');
+    }
+
+    $loan = DB::table('loans')
+        ->where('id', $request->loan_id)
+        ->where('status', 'returned')  // Only process items that have been returned
+        ->first();
+
+    if (!$loan) {
+        return redirect()->back()->with('error', 'Loan record not found');
+    }
+
+    DB::beginTransaction();
+
+    try {
+        // Update to damaged if damage notes provided
+        if ($request->has('damage_notes')) {
+            DB::table('loans')
+                ->where('id', $request->loan_id)
+                ->update([
+                    'status' => 'damaged',
+                    'damaged_notes' => $request->damage_notes
+                ]);
+        }
+
+        // Create fine if specified
+        if ($request->filled('fine_amount') && $request->fine_amount > 0) {
+            DB::table('fines')->insert([
+                'loan_id' => $loan->id,
+                'user_id' => $loan->user_id,
+                'amount' => $request->fine_amount,
+                'reason' => $request->has('damage_notes') ? 'damage' : 'overdue',
+                'status' => 'pending',
+                'due_date' => now()->addDays(30),
+                'created_at' => now()
+            ]);
+
+            // Notify user of fine
+            $user = DB::table('users')->find($loan->user_id);
+            Mail::raw('A fine has been added to your account for returned item.', function ($message) use ($user) {
+                $message->to($user->email)
+                        ->subject('Library Fine Notice');
+            });
+        }
+
+        DB::commit();
+        return redirect()->back()->with('success', 'Return processed successfully');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->back()->with('error', 'Failed to process return: ' . $e->getMessage());
+    }
+}
     // Add media to wishlist
     public function addToWishlist($id)
     {

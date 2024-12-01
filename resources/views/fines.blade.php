@@ -17,7 +17,7 @@
         <div class="header-right">
             <nav>
                 <ul>
-                    <li><a href="{{ route('browse') }}">Browse Media</a></li>
+                    <li><a href="{{ route('dashboard.member') }}">My Account Dashboard</a></li>
                     <li><a href="{{ route('returns.processed') }}">Processed Returns</a></li>
                     <li><a href="{{ route('fines') }}">Manage Fines</a></li>
                     <li><a href="{{ route('signout') }}">Sign Out</a></li>
