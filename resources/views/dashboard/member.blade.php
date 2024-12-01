@@ -18,6 +18,7 @@
             <nav>
                 <ul>
                     <li><a href="{{ route('browse') }}">Browse Media</a></li>
+                    <li><a href="{{ route('browse_branch') }}">Browse Branches</a></li>
                     <li><a href="{{ route('wishlist') }}">My Wishlist</a></li>
                     <li><a href="{{ route('borrowed') }}">My Borrowed Items</a></li>
                     <li><a href="{{ route('signout') }}">Sign Out</a></li>

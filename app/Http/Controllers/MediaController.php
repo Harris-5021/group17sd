@@ -31,6 +31,27 @@ class MediaController extends Controller
         return view('browse', compact('media'));
     }
 
+    public function browse_branch()
+    {
+        $branches = DB::table('branches')
+        ->select('branches.*')
+        ->get();
+
+        return view('browse_branch', ['branches' => $branches]);
+    }
+
+    public function branch_media($branch_id)
+    {
+        $branch_media = DB::table('media')
+        ->join('inventory', 'media_id', '=', 'inventory.media_id')
+        ->join('branches', 'inventory.branch_id', '=', 'branch_id')
+        ->where('branch_id', $branch_id)
+        ->get();
+
+
+        return view('branch_media', ['branch_media'=> $branch_media]);
+    }
+
     // Search for media items
     public function search(Request $request)
     {
