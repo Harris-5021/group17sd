@@ -20,7 +20,7 @@ use Illuminate\Http\Request;
 
 // Public routes
 Route::get('/', [Controller::class, 'home'])->name('home');
-Route::get('/test', [TestController::class, 'test'])->name('test');
+
 
 // Authentication routes
 Route::get('login', [LoginController::class, 'index'])->name('login');
