@@ -44,11 +44,34 @@
                     <p>Price: N/A</p>  <!-- In case no price is set -->
                 @endif
 
-                <!-- Form to add media to procurement -->
+                     <!-- Form to add media to procurement -->
                 <form action="{{ route('procurement.store') }}" method="POST">
                     @csrf
                     <input type="hidden" name="vendor_id" value="{{ $vendor->id }}">
                     <input type="hidden" name="media_id" value="{{ $media->id }}">
+                    
+                    <!-- Hidden fields to send additional media data -->
+                    <input type="hidden" name="title" value="{{ $media->title }}">
+                    <input type="hidden" name="author" value="{{ $media->author }}">
+                    <input type="hidden" name="media_type" value="{{ $media->type }}">
+                    <input type="hidden" name="publication_year" value="{{ $media->publication_year }}">
+                    <input type="hidden" name="status" value="{{ $media->status }}">
+                    <input type="hidden" name="description" value="{{ $media->description }}">
+                    <input type="hidden" name="procurement_date" value="{{ \Carbon\Carbon::now()->toDateString() }}"> <!-- Default to today's date -->
+                    <input type="hidden" name="procurement_type" value="purchase"> <!-- Default procurement type -->
+                    <input type="hidden" name="supplier_name" value="{{ $vendor->name }}"> <!-- Set the supplier to the vendor's name -->
+                    <input type="hidden" name="procurement_cost" value="{{ $media->price }}"> <!-- Set default cost to media price -->
+                    <input type="hidden" name="payment_status" value="pending"> <!-- Default payment status -->
+                    <label for="branch_location">Branch Location</label>
+                    <select name="branch_location" id="branch_location" required>
+                        <option value="">Select Branch</option>
+                        @foreach($branches as $branch)
+                            <option value="{{ $branch->name }}">{{ $branch->name }}</option>
+                        @endforeach
+                    </select>
+                    <label for="quantity">Quantity</label>
+                    <input type="number" name="quantity" id="quantity" min="1" required><br><br>
+
                     <button type="submit">Add to Procurement</button>
                 </form>
             </li>

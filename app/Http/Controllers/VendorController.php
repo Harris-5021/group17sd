@@ -5,6 +5,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Vendor;
+use App\Models\Media;
+use App\Models\Branch;
 use Illuminate\Http\Request;
 
 class VendorController extends Controller
@@ -39,7 +41,13 @@ class VendorController extends Controller
     // Show the list of media for a selected vendor
     public function showMedia(Vendor $vendor)
     {
-        $mediaList = $vendor->media;  // Get media associated with the selected vendor
-        return view('vendors.showMedia', compact('vendor', 'mediaList'));
+        
+
+        // Get all media available from the vendor
+        $mediaList = Media::where('vendor_id', $vendor->id)->get();
+
+        // Get all branches
+        $branches = Branch::all(); 
+        return view('vendors.showMedia', compact('vendor', 'mediaList', 'branches'));
     }
 }

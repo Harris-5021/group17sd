@@ -159,6 +159,9 @@ class DashboardController extends Controller
 
     public function storeProcurement(Request $request)
 {
+    
+    //dd($request->all());
+
     $branch = DB::table('branches')
         ->where('name', $request->input('branch_location'))  
         ->first();
