@@ -81,7 +81,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/media/{id}', [MediaController::class, 'show'])->name('show');
     Route::get('/borrowed', [MediaController::class, 'borrowed'])->name('borrowed');
     Route::get('/wishlist', [MediaController::class, 'wishlist'])->name('wishlist');
-    
+    Route::get('/browse_branch', [MediaController::class, 'browse_branch'])->name('browse_branch');
+    Route::get('/branch_media/{branch_id}', [MediaController::class, 'branch_media'])->name('branch_media');
+
+
     // Media actions
     Route::post('/media/{id}/borrow', [MediaController::class, 'borrow'])->name('borrow');
     Route::post('/media/{id}/return', [MediaController::class, 'return'])->name('return');

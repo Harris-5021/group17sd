@@ -24,4 +24,9 @@ class Inventory extends Model
         return $this->belongsTo(Media::class, 'media_id');
     }
 
+    public function branch()
+    {
+    return $this->belongsTo(Branch::class, 'branch_id', 'id');
+    }
+
 }

@@ -21,4 +21,10 @@ class Branch extends Model
     {
         return $this->hasMany(User::class);
     }
+
+    public function inventory()
+    {
+    return $this->hasMany(Inventory::class, 'media_id', 'id');
+    }
+
 }
