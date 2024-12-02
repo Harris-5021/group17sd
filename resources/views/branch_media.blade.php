@@ -43,7 +43,12 @@
                         <h2>Title: {{$item->title}}</h2>
                         <h3>Author: {{ $item->author }}</h3>
                         <p> Type: {{ $item->type }}</p>
-                        
+                          <!-- Borrow Form -->
+                          <form action="{{ route('borrow', $item->id) }}" method="POST" onsubmit="event.stopPropagation();" id="borrow-form-{{ $item->id }}">
+                            @csrf
+                            
+                            <button type="submit" class="borrow-btn">Borrow</button>
+                        </form>
                     </div>
                         @endforeach
 
