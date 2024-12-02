@@ -41,7 +41,7 @@ class MediaController extends Controller
         return view('browse_branch', ['branches' => $branches]);
     }
 
-    public function branch_media($branch_id)
+    public function branch_media($branch_id, $branch_name)
     {
         $branch_media = DB::table('media')
         ->join('inventory', 'media.id', '=', 'inventory.media_id')
@@ -51,7 +51,7 @@ class MediaController extends Controller
         ->get();
 
 
-        return view('branch_media', ['branch_media'=> $branch_media]);
+        return view('branch_media', ['branch_media'=> $branch_media, 'name'=>$branch_name]);
     }
 
     // Search for media items

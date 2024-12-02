@@ -34,7 +34,7 @@
         </div>
     </header>
     <body>
-
+    <h1>Media available at: {{$name}}</h1>
     <main>
 @if($branch_media->count() > 0)
             <div class="media-grid">
