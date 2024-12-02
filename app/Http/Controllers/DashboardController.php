@@ -9,7 +9,7 @@ use App\Models\User;
 use App\Models\Media;
 use App\Models\Procurement;
 use App\Models\Inventory;
-
+use Illuminate\Support\Facades\Mail;
 class DashboardController extends Controller
 {
     public function index()
@@ -159,15 +159,17 @@ class DashboardController extends Controller
 
     public function storeProcurement(Request $request)
 {
+    
+    //dd($request->all());
 
     $branch = DB::table('branches')
-    ->where('name', $request->input('branch_location'))  // Assuming 'location' is the column in the branches table
-    ->first();
+        ->where('name', $request->input('branch_location'))  
+        ->first();
     
     // Validate the procurement form data
     $request->validate([
         'media_type' => 'required|in:Book,DVD,Magazine,E-Book,Audio',
-        'title' => 'required|string|max:255', // Title for the media item
+        'title' => 'required|string|max:255', 
         'author' => 'nullable|string|max:255',
         'publication_year' => 'nullable|integer|min:1000|max:' . date('Y'),
         'procurement_date' => 'required|date',
@@ -179,35 +181,90 @@ class DashboardController extends Controller
         'quantity' => 'required|integer|min:1',
     ]);
 
-    // Step 1: Insert into the media table
-    $media = Media::create([
-        'title' => $request->input('title'),
-        'author' => $request->input('author'),
-        'type' => $request->input('media_type'),
-        'publication_year' => $request->input('publication_year'),
-        'status' => 'available', // Default status for new media
-    ]);
-    
+    try {
+        DB::beginTransaction();
 
-    // Step 2: Insert into the procurements table using the new media_id
-    Procurement::create([
-        'media_id' => $media->id, // Use the ID of the newly created media
-        'procurement_date' => $request->input('procurement_date'),
-        'procurement_type' => $request->input('procurement_type'),
-        'supplier_name' => $request->input('supplier_name'),
-        'procurement_cost' => $request->input('procurement_cost'),
-        'payment_status' => $request->input('payment_status'),
-        'branch_location' => $request->input('branch_location'),
-    ]);
-    Inventory::create([
-        'media_id' => $media->id, // Use the ID of the newly created media
-        'branch_id' => $branch->id,
-        'quantity' => $request->input('quantity'),
-    ]);
-    
+        // Check if media already exists
+        $existingMedia = DB::table('media')
+            ->where('title', $request->input('title'))
+            ->where('author', $request->input('author'))
+            ->where('type', $request->input('media_type'))
+            ->first();
 
-    // Redirect back with a success message
-    return redirect()->route('purchase_manager.view')->with('success', 'Procurement record added successfully.');
+        if ($existingMedia) {
+            $mediaId = $existingMedia->id;
+
+            // Check if inventory record exists for this branch
+            $existingInventory = DB::table('inventory')
+                ->where('media_id', $mediaId)
+                ->where('branch_id', $branch->id)
+                ->first();
+
+            if ($existingInventory) {
+                // Update existing inventory
+                DB::table('inventory')
+                    ->where('media_id', $mediaId)
+                    ->where('branch_id', $branch->id)
+                    ->increment('quantity', $request->input('quantity'));
+            } else {
+                // Create new inventory record for this branch
+                Inventory::create([
+                    'media_id' => $mediaId,
+                    'branch_id' => $branch->id,
+                    'quantity' => $request->input('quantity'),
+                ]);
+            }
+        } else {
+            // Create new media record if it doesn't exist
+            $media = Media::create([
+                'title' => $request->input('title'),
+                'author' => $request->input('author'),
+                'type' => $request->input('media_type'),
+                'publication_year' => $request->input('publication_year'),
+                'status' => 'available',
+            ]);
+
+            $mediaId = $media->id;
+
+            // Create new inventory record
+            Inventory::create([
+                'media_id' => $mediaId,
+                'branch_id' => $branch->id,
+                'quantity' => $request->input('quantity'),
+            ]);
+        }
+
+        // Create procurement record regardless
+        Procurement::create([
+            'media_id' => $mediaId,
+            'procurement_date' => $request->input('procurement_date'),
+            'procurement_type' => $request->input('procurement_type'),
+            'supplier_name' => $request->input('supplier_name'),
+            'procurement_cost' => $request->input('procurement_cost'),
+            'payment_status' => $request->input('payment_status'),
+            'branch_location' => $request->input('branch_location'),
+        ]);
+
+        // Check for wishlist users and send notifications
+        $wishlistUsers = DB::table('wishlists')
+            ->join('users', 'wishlists.user_id', '=', 'users.id')
+            ->where('wishlists.media_id', $mediaId)
+            ->where('notification_preferences', 'enabled')
+            ->get();
+
+        foreach($wishlistUsers as $wishlistUser) {
+            Mail::raw("Good news! '{$request->input('title')}' is now available at {$branch->name}.", function ($message) use ($wishlistUser) {
+                $message->to($wishlistUser->email)
+                    ->subject('Wishlist Item Now Available');
+            });
+        }
+
+        DB::commit();
+        return redirect()->route('purchase_manager.view')->with('success', 'Procurement record added successfully.');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->back()->with('error', 'Failed to add procurement record: ' . $e->getMessage());
+    }
 }
 public function viewProcurements()
 {

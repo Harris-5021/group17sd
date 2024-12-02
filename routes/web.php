@@ -10,6 +10,7 @@ use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\ProcurementController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\VendorController;
 use App\Mail\NewMemberNotify;
 use App\Http\Controllers\DeliveryController;
 use Illuminate\Support\Facades\Mail;
@@ -20,7 +21,7 @@ use Illuminate\Http\Request;
 
 // Public routes
 Route::get('/', [Controller::class, 'home'])->name('home');
-Route::get('/test', [TestController::class, 'test'])->name('test');
+
 
 // Authentication routes
 Route::get('login', [LoginController::class, 'index'])->name('login');
@@ -79,6 +80,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/wishlist/update-priority', [MediaController::class, 'updatePriority'])->name('wishlist.updatePriority');
     Route::post('/wishlist/notifications/update', [MediaController::class, 'updateNotificationPreferences'])->name('wishlist.updateNotifications');
 
+    Route::post('/wishlist/request-media', [MediaController::class, 'requestMedia'])->name('wishlist.requestMedia');
+
+
 });
     // Media routes
     Route::get('/search', [MediaController::class, 'search'])->name('search');
@@ -101,4 +105,14 @@ Route::middleware(['auth'])->group(function () {
     // Route to handle the delivery request
     Route::post('/media/{mediaId}/request-delivery', [DeliveryController::class, 'requestDelivery'])->name('delivery.request');
 });
+// Route for listing vendors
+Route::get('/vendors', [VendorController::class, 'index'])->name('vendors.index');
+
+// Route for showing media of a vendor
+Route::get('/vendors/{vendor}/media', [VendorController::class, 'showMedia'])->name('vendors.showMedia');
+
+// Route for creating a new vendor
+Route::get('/vendors/create', [VendorController::class, 'create'])->name('vendors.create');
+Route::post('/vendors', [VendorController::class, 'store'])->name('vendors.store');
+
 
