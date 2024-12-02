@@ -33,3 +33,24 @@
             </div>
         </div>
     </header>
+    <body>
+
+    <main>
+@if($branch_media->count() > 0)
+            <div class="media-grid">
+                @foreach($branch_media as $item)
+                    <div class="media-card">
+                        <h2>Title: {{$item->title}}</h2>
+                        <h3>Author: {{ $item->author }}</h3>
+                        <p> Type: {{ $item->type }}</p>
+                        
+                    </div>
+                        @endforeach
+
+                @else
+            <p class="no-results">No media in stock right now</p>
+        @endif
+    </main>
+
+
+    </body>

@@ -43,9 +43,10 @@ class MediaController extends Controller
     public function branch_media($branch_id)
     {
         $branch_media = DB::table('media')
-        ->join('inventory', 'media_id', '=', 'inventory.media_id')
-        ->join('branches', 'inventory.branch_id', '=', 'branch_id')
-        ->where('branch_id', $branch_id)
+        ->join('inventory', 'media.id', '=', 'inventory.media_id')
+        ->join('branches', 'inventory.branch_id', '=', 'branches.id')
+        ->select('media.*', 'inventory.quantity')
+        ->where('inventory.branch_id', $branch_id)
         ->get();
 
 
