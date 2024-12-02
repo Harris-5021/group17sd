@@ -51,7 +51,7 @@ class MediaController extends Controller
         ->get();
 
 
-        return view('branch_media', ['branch_media'=> $branch_media, 'name'=>$branch_name]);
+        return view('branch_media', ['branch_media'=> $branch_media, 'name'=>$branch_name, 'branch_id'=>$branch_id]);
     }
 
     // Search for media items

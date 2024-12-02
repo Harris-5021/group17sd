@@ -46,7 +46,7 @@
                           <!-- Borrow Form -->
                           <form action="{{ route('borrow', $item->id) }}" method="POST" onsubmit="event.stopPropagation();" id="borrow-form-{{ $item->id }}">
                             @csrf
-                            
+                            <input type="hidden" name="branch_id" value="{{ $branch_id }}">
                             <button type="submit" class="borrow-btn">Borrow</button>
                         </form>
                     </div>
