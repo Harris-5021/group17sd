@@ -20,6 +20,8 @@ class Media extends Model
         'description',
         'damaged_notes',
         'replacement_cost',
+        'vendor_id',
+        'procurement_cost',
     ];
     const UPDATED_AT = null;
 

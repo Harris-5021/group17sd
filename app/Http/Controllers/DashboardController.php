@@ -159,13 +159,12 @@ class DashboardController extends Controller
 
     public function storeProcurement(Request $request)
 {
-    
     //dd($request->all());
 
     $branch = DB::table('branches')
         ->where('name', $request->input('branch_location'))  
         ->first();
-    
+
     // Validate the procurement form data
     $request->validate([
         'media_type' => 'required|in:Book,DVD,Magazine,E-Book,Audio',
@@ -175,7 +174,7 @@ class DashboardController extends Controller
         'procurement_date' => 'required|date',
         'procurement_type' => 'required|in:purchase,license,donation',
         'supplier_name' => 'required|string|max:255',
-        'procurement_cost' => 'nullable|numeric|min:0',
+        'procurement_cost' => 'required|numeric|min:0',
         'payment_status' => 'required|in:pending,paid,overdue',
         'branch_location' => 'required|string|max:255',
         'quantity' => 'required|integer|min:1',
@@ -183,6 +182,14 @@ class DashboardController extends Controller
 
     try {
         DB::beginTransaction();
+
+        // Check if the supplier name exists in the vendors table
+        $vendor = DB::table('vendors')
+            ->where('name', $request->input('supplier_name'))
+            ->first();
+
+        // If no vendor is found, vendor_id will be set to null
+        $vendorId = $vendor ? $vendor->id : null;
 
         // Check if media already exists
         $existingMedia = DB::table('media')
@@ -193,6 +200,11 @@ class DashboardController extends Controller
 
         if ($existingMedia) {
             $mediaId = $existingMedia->id;
+
+            // Update vendor_id to null if no vendor is found
+            DB::table('media')
+                ->where('id', $mediaId)
+                ->update(['vendor_id' => $vendorId]);
 
             // Check if inventory record exists for this branch
             $existingInventory = DB::table('inventory')
@@ -222,6 +234,8 @@ class DashboardController extends Controller
                 'type' => $request->input('media_type'),
                 'publication_year' => $request->input('publication_year'),
                 'status' => 'available',
+                'vendor_id' => $vendorId, // Set vendor_id to null or valid vendor_id
+                'procurement_cost' => $request->input('procurement_cost'),
             ]);
 
             $mediaId = $media->id;
@@ -243,6 +257,7 @@ class DashboardController extends Controller
             'procurement_cost' => $request->input('procurement_cost'),
             'payment_status' => $request->input('payment_status'),
             'branch_location' => $request->input('branch_location'),
+            'vendor_id' => $vendorId, // Set vendor_id to null or valid vendor_id
         ]);
 
         // Check for wishlist users and send notifications
@@ -266,6 +281,7 @@ class DashboardController extends Controller
         return redirect()->back()->with('error', 'Failed to add procurement record: ' . $e->getMessage());
     }
 }
+
 public function viewProcurements()
 {
     // Fetch all procurements from the database

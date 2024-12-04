@@ -213,12 +213,13 @@ public function wishlist()
 
 public function return($id)
 {
+    
     $loan = DB::table('loans')
         ->where('id', $id)
         ->where('user_id', Auth::id())
         ->where('status', 'active')
         ->first();
-
+      
     if (!$loan) {
         return redirect()->back()->with('error', 'Loan record not found');
     }
