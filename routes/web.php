@@ -80,6 +80,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/wishlist/update-priority', [MediaController::class, 'updatePriority'])->name('wishlist.updatePriority');
     Route::post('/wishlist/notifications/update', [MediaController::class, 'updateNotificationPreferences'])->name('wishlist.updateNotifications');
 
+    Route::post('/wishlist/request-media', [MediaController::class, 'requestMedia'])->name('wishlist.requestMedia');
+
+
 });
     // Media routes
     Route::get('/search', [MediaController::class, 'search'])->name('search');
@@ -88,7 +91,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/borrowed', [MediaController::class, 'borrowed'])->name('borrowed');
     Route::get('/wishlist', [MediaController::class, 'wishlist'])->name('wishlist');
     Route::get('/browse_branch', [MediaController::class, 'browse_branch'])->name('browse_branch');
-    Route::get('/branch_media/{branch_id}', [MediaController::class, 'branch_media'])->name('branch_media');
+    Route::get('/branch_media/{branch_id}/{name}', [MediaController::class, 'branch_media'])->name('branch_media');
 
 
     // Media actions

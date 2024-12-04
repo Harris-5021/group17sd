@@ -42,7 +42,7 @@ class SubscriptionController extends Controller
                 $subscription->plan_type = $request->plan_type;
             }
             if ($request->has('fee_paid')) {
-                if($request['fee_paid'] == 'Y')
+                if($request['fee_paid'] == 1)
                 {
                     $subscription->fee_paid = 1;
                     $subscription->status = 'Active';

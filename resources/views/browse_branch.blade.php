@@ -47,7 +47,7 @@
     <p>Contact Number: {{$branch->contact_number}}</p>
     <p>Email: {{$branch->email}}</p>
     <p>Opening Hours: {{$branch->opening_hours}}</p>
-    <form method="GET" action="{{ route('branch_media', ['branch_id'=> $branch->id])}}">
+    <form method="GET" action="{{ route('branch_media', ['branch_id'=> $branch->id, 'name' =>$branch->name])}}">
             <button type = "submit"> View more </button> 
     </form>
     </div>

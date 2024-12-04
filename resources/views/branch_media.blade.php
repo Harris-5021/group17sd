@@ -33,3 +33,29 @@
             </div>
         </div>
     </header>
+    <body>
+    <h1>Media available at: {{$name}}</h1>
+    <main>
+@if($branch_media->count() > 0)
+            <div class="media-grid">
+                @foreach($branch_media as $item)
+                    <div class="media-card">
+                        <h2>Title: {{$item->title}}</h2>
+                        <h3>Author: {{ $item->author }}</h3>
+                        <p> Type: {{ $item->type }}</p>
+                          <!-- Borrow Form -->
+                          <form action="{{ route('borrow', $item->id) }}" method="POST" onsubmit="event.stopPropagation();" id="borrow-form-{{ $item->id }}">
+                            @csrf
+                            <input type="hidden" name="branch_id" value="{{ $branch_id }}">
+                            <button type="submit" class="borrow-btn">Borrow</button>
+                        </form>
+                    </div>
+                        @endforeach
+
+                @else
+            <p class="no-results">No media in stock right now</p>
+        @endif
+    </main>
+
+
+    </body>

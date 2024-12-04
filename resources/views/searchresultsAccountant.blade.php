@@ -36,7 +36,7 @@
 
 <div class="search-results-container">
 <h1>Search Results for "{{ $query }}"</h1>
-
+<main>
 @if($users->count() > 0)
             <div class="media-grid">
                 @foreach($users as $item)
