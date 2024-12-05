@@ -60,15 +60,15 @@ class SubscriptionController extends Controller
                 $subscription->end_date = $endDate;
             }
            
-            if($request['plan_type'] == 'basic')
+            if($request['plan_type'] == 'Basic')
             {
                 $subscription->amount = 25.99;
             }
-            elseif($request['plan_type'] == 'student')
+            elseif($request['plan_type'] == 'Student')
             {
                 $subscription->amount = 15.99;
             }
-            elseif($request['plan_type'] == 'premium')
+            elseif($request['plan_type'] == 'Premium')
             {
                 $subscription->amount = 35.99;
             }

@@ -1,6 +1,32 @@
 <html>
   <head>
+  <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+  <link rel="stylesheet" href="{{ asset('css/accessibility-toolbar.css') }}">
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <header>
+        <div class="logo">
+            <a href="{{ route('home') }}">
+                <img src="{{ asset('AML.png') }}" alt="AML Logo">
+            </a>
+        </div>
+        <div class="header-right">
+            <nav>
+                <ul>
+                    <li><a href="{{ route('dashboard.member') }}">My Account Dashboard</a></li>
+                    <li><a href="{{ route('browse') }}">Browse Media</a></li>
+                    <li><a href="{{ route('wishlist') }}">My Wishlist</a></li>
+                    <li><a href="{{ route('borrowed') }}">My Borrowed Items</a></li>
+                    <li><a href="{{ route('signout') }}">Sign Out</a></li>
+                </ul>
+            </nav>
+            <div class="search">
+                <form action="{{ route('search') }}" method="GET">
+                    <input type="text" name="query" placeholder="Search Media...">
+                    <button type="submit">&#128269;</button>
+                </form>
+            </div>
+        </div>
+    </header>
     <script type="text/javascript">
       google.charts.load("current", {packages:["corechart"]});
       google.charts.setOnLoadCallback(drawChart);
