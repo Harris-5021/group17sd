@@ -11,6 +11,12 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body>
+    <!-- Notification Popup -->
+    <div id="notification" class="notification-popup" style="display: none;">
+        <span id="notification-message"></span>
+        <button onclick="closeNotification()" class="close-button">&times;</button>
+    </div>
+
     <header>
         <div class="logo">
             <a href="{{ route('home') }}">
@@ -73,7 +79,7 @@
     <div id="requestMediaModal" class="modal">
         <div class="modal-content">
             <h2>Request New Media</h2>
-            <form action="{{ route('wishlist.requestMedia') }}" method="POST" id="requestMediaForm">
+            <form id="requestMediaForm">
                 @csrf
                 <div class="form-group">
                     <label for="title">Title *</label>
@@ -257,6 +263,46 @@
         margin: 20px auto;
     }
 
+    .notification-popup {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        background-color: #4CAF50;
+        color: white;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: slideIn 0.5s ease-out;
+    }
+
+    .notification-popup.error {
+        background-color: #dc3545;
+    }
+
+    .close-button {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 0 5px;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
     /* Modal styles */
     .modal {
         display: none;
@@ -363,12 +409,12 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert('Notification preferences updated!');
+                        showNotification('Notification preferences updated!', 'success');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Failed to update notification preferences');
+                    showNotification('Failed to update notification preferences', 'error');
                 });
             });
         });
@@ -392,14 +438,49 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Priorities updated successfully!');
+                    showNotification('Priorities updated successfully!', 'success');
                 } else {
-                    alert('Failed to update priorities.');
+                    showNotification('Failed to update priorities', 'error');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('An error occurred while saving priorities.');
+                showNotification('An error occurred while saving priorities', 'error');
+            });
+        });
+
+        // Handle media request form submission
+        document.getElementById('requestMediaForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+
+            fetch("{{ route('wishlist.requestMedia') }}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Media request submitted successfully. Branch managers have been notified.', 'success');
+                    closeRequestModal();
+                    this.reset();
+                } else {
+                    showNotification(data.error || 'Failed to submit request. Please try again.', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('An error occurred while submitting the request', 'error');
             });
         });
     });
@@ -411,6 +492,25 @@
     function closeRequestModal() {
         document.getElementById('requestMediaModal').style.display = 'none';
         document.getElementById('requestMediaForm').reset();
+    }
+
+    function showNotification(message, type = 'success') {
+        const notification = document.getElementById('notification');
+        const notificationMessage = document.getElementById('notification-message');
+        
+        notification.className = 'notification-popup ' + type;
+        notificationMessage.textContent = message;
+        notification.style.display = 'flex';
+
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            closeNotification();
+        }, 5000);
+    }
+
+    function closeNotification() {
+        const notification = document.getElementById('notification');
+        notification.style.display = 'none';
     }
 
     // Close modal when clicking outside
