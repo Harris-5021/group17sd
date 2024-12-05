@@ -48,6 +48,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/librarian', [DashboardController::class, 'index'])->name('dashboard.librarian');
     Route::get('/dashboard/member', [DashboardController::class, 'index'])->name('dashboard.member');
     Route::get('/accountant', [DashboardController::class, 'searchUser'])->name('searchUser');
+    
+//Route for google chart to display profit of branches
+    Route::get('/branch_profits', [DashboardController::class, 'googleLineChart'])->name('branch_profits');
+
 
     Route::get('/purchase_manager', [DashboardController::class, 'showProcurementForm'])->name('purchase_manager.view');
     Route::post('/procurement', [DashboardController::class, 'storeProcurement'])->name('procurement.store');

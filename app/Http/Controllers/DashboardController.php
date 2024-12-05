@@ -10,8 +10,10 @@ use App\Models\Media;
 use App\Models\Procurement;
 use App\Models\Inventory;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 class DashboardController extends Controller
 {
+    use HasFactory;
     public function index()
 {
    $user = Auth::user();
@@ -633,6 +635,19 @@ public function librarianDashboard()
 }
 
 
+public function googleLineChart()
+{
+    $totalEarnings = DB::table('subscriptions')
+        ->join('users', 'subscriptions.user_id', '=', 'users.id')
+        ->join('branches', 'users.branch_id', '=', 'branches.id')
+        ->where('subscriptions.status', 'Active')
+        ->select('users.branch_id', 'branches.name AS branch_name', DB::raw('SUM(subscriptions.amount) AS total_earnings'))
+        ->groupBy('users.branch_id', 'branches.name')
+        ->get();
 
+    
+
+    return view('branch_profits', ['totalEarnings'=>$totalEarnings]);
+}
 
 }

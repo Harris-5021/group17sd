@@ -41,6 +41,7 @@
         </div>
 </main>
 
+<li><a href="{{ route('branch_profits') }}">See Branch Profits</a></li>
 
 </body>
 
