@@ -152,10 +152,19 @@
     {{ session('success') }}
 </div>
 @endif
-    @endforeach
+
+
+
 </tr>
 </table>
+<form method="GET" action="{{ route('subscription.showPastPayments', ['id' => $sub->user_id]) }}">
+                        <button type = "submit"> View Past Payments </button> 
+                        </form>
+    @endforeach
 </div>
 
 
 </body>
+<footer>
+
+</footer>

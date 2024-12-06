@@ -78,7 +78,18 @@ class SubscriptionController extends Controller
             return redirect()->back()->with('success', 'Subscription updated successfully.');
         }
       
-
+        public function showPastPayments($user_id)
+        {
+            $payments = DB::table('payments')
+            ->select('payments.*')
+            ->where('user_id', $user_id)
+            ->get();
+    
+            return view('pastPayments', 
+            ['payments' => $payments]
+        );
+            
+        }
      
    
     }
