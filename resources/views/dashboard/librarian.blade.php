@@ -137,6 +137,72 @@
             </div>
         </div>
     </main>
+    <!-- Transfer Requests Card -->
+<div class="dashboard-card">
+    <h2>Transfer Requests</h2>
+    <div class="transfers-list">
+        @if($transferRequests->count() > 0)
+            <table class="transfers-table">
+                <thead>
+                    <tr>
+                        <th>Media Title</th>
+                        <th>From Branch</th>
+                        <th>To Branch</th>
+                        <th>Status</th>
+                        <th>Created Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($transferRequests as $transfer)
+                        <tr>
+                            <td>{{ $transfer->media_title }}</td>
+                            <td>{{ $transfer->from_branch_name }}</td>
+                            <td>{{ $transfer->to_branch_name }}</td>
+                            <td>
+                                <span class="status-badge {{ $transfer->status }}">
+                                    {{ ucfirst($transfer->status) }}
+                                </span>
+                            </td>
+                            <td>{{ \Carbon\Carbon::parse($transfer->created_at)->format('d/m/Y') }}</td>
+                            <td>
+                                @if($transfer->status == 'pending')
+                                    <button onclick="showTransferModal({{ $transfer->id }})" class="btn-process">
+                                        Process Transfer
+                                    </button>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @else
+            <p>No transfer requests</p>
+        @endif
+    </div>
+</div>
+
+<!-- Transfer Process Modal -->
+<div id="processTransferModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h2>Process Transfer Request</h2>
+        <form action="{{ route('transfers.process') }}" method="POST" id="processTransferForm">
+            @csrf
+            <input type="hidden" name="transfer_id" id="transfer_id">
+            
+            <div class="form-group">
+                <label for="transfer_notes">Notes (if any):</label>
+                <textarea name="transfer_notes" id="transfer_notes" class="form-control" rows="3"></textarea>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" name="action" value="confirm" class="btn-approve">Confirm Transfer</button>
+                <button type="submit" name="action" value="reject" class="btn-reject">Reject Transfer</button>
+                <button type="button" onclick="closeTransferModal()" class="btn-cancel">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
 
     <!-- Process Return Modal -->
     <div id="processReturnModal" class="modal" style="display: none;">
@@ -324,6 +390,28 @@ window.onclick = function(event) {
     let modal = document.getElementById('processReturnModal');
     if (event.target == modal) {
         closeModal();
+    }
+}
+
+function showTransferModal(transferId) {
+    document.getElementById('transfer_id').value = transferId;
+    document.getElementById('processTransferModal').style.display = 'block';
+}
+
+function closeTransferModal() {
+    document.getElementById('processTransferModal').style.display = 'none';
+    document.getElementById('processTransferForm').reset();
+}
+
+// Update the existing window.onclick function
+window.onclick = function(event) {
+    let processModal = document.getElementById('processReturnModal');
+    let transferModal = document.getElementById('processTransferModal');
+    if (event.target == processModal) {
+        closeModal();
+    }
+    if (event.target == transferModal) {
+        closeTransferModal();
     }
 }
 </script>

@@ -679,3 +679,40 @@ input:checked + .slider:before {
   border-radius: 5px;
   margin-bottom: 20px;
 }
+
+.transfers-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.transfers-table th,
+.transfers-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.status-badge.pending {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge.completed {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.rejected {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.btn-approve {
+  background-color: #10b981;
+  color: white;
+}
+
+.btn-reject {
+  background-color: #ef4444;
+  color: white;
+}

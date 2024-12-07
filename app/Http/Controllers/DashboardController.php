@@ -105,7 +105,37 @@ class DashboardController extends Controller
                 )
                 ->get();
         
-            return view('dashboard.librarian', compact('user', 'borrowedItems', 'wishlistItems', 'pendingReturns', 'recentFines', 'damagedItems'));
+            // Query for transfer requests
+            $transferRequests = DB::table('transfer_requests')
+                ->join('media', 'transfer_requests.media_id', '=', 'media.id')
+                ->join('branches as from_branch', 'transfer_requests.from_branch_id', '=', 'from_branch.id')
+                ->join('branches as to_branch', 'transfer_requests.to_branch_id', '=', 'to_branch.id')
+                ->select(
+                    'transfer_requests.id',
+                    'transfer_requests.status',
+                    'transfer_requests.created_at',
+                    'media.title as media_title',
+                    'from_branch.name as from_branch_name',
+                    'to_branch.name as to_branch_name'
+                )
+                ->where(function ($query) use ($user) {
+                    // Show transfers where the librarian's branch is either sender or receiver
+                    $query->where('from_branch_id', $user->branch_id)
+                          ->orWhere('to_branch_id', $user->branch_id);
+                })
+                ->orderBy('transfer_requests.created_at', 'desc')
+                ->take(10)
+                ->get();
+        
+            return view('dashboard.librarian', compact(
+                'user',
+                'borrowedItems',
+                'wishlistItems',
+                'pendingReturns',
+                'recentFines',
+                'damagedItems',
+                'transferRequests'
+            ));
         
            
        case 'member':
@@ -522,10 +552,9 @@ public function viewFines()
 }
 
 
-public function processReturn(Request $request)
+public function processReturn(Request $request, $id)
 {
     $request->validate([
-        'return_id' => 'required|exists:loans,id',
         'damage_notes' => 'nullable|string|max:1000',
         'fine_amount' => 'nullable|numeric|min:0',
         'status' => 'required|in:returned,damaged'
@@ -534,15 +563,16 @@ public function processReturn(Request $request)
     try {
         DB::beginTransaction();
 
-        $loan = DB::table('loans')->where('id', $request->return_id)->first();
+        // Use the `$id` passed through the route
+        $loan = DB::table('loans')->where('id', $id)->first();
         
         if (!$loan) {
-            throw new \Exception('Loan not found');
+            throw new \Exception('Loan not found.');
         }
 
         // Update loan status
         DB::table('loans')
-            ->where('id', $request->return_id)
+            ->where('id', $id)
             ->update([
                 'status' => $request->status,
                 'returned_date' => now(),
@@ -576,7 +606,7 @@ public function processReturn(Request $request)
         }
 
         DB::commit();
-        return redirect()->back()->with('success', 'Return processed successfully');
+        return redirect()->back()->with('success', 'Return processed successfully.');
     } catch (\Exception $e) {
         DB::rollBack();
         return redirect()->back()->with('error', 'Failed to process return: ' . $e->getMessage());
@@ -587,7 +617,7 @@ public function librarianDashboard()
 {
     $user = Auth::user();
 
-    // Query for pending returns
+    // Fetch pending returns
     $pendingReturns = DB::table('loans')
         ->join('users', 'loans.user_id', '=', 'users.id')
         ->join('media', 'loans.media_id', '=', 'media.id')
@@ -603,9 +633,8 @@ public function librarianDashboard()
         ->take(10)
         ->get();
 
-    // Query for recent fines
+    // Fetch recent fines
     $recentFines = DB::table('fines')
-        ->join('loans', 'fines.loan_id', '=', 'loans.id')
         ->join('users', 'fines.user_id', '=', 'users.id')
         ->select(
             'fines.loan_id',
@@ -618,7 +647,7 @@ public function librarianDashboard()
         ->take(10)
         ->get();
 
-    // Query for damaged items
+    // Fetch damaged items
     $damagedItems = DB::table('media')
         ->select(
             'id as media_id',
@@ -630,9 +659,38 @@ public function librarianDashboard()
         ->where('status', '=', 'damaged')
         ->get();
 
-    // Return the librarian dashboard view with the data
-    return view('dashboard.librarian', compact('user', 'pendingReturns', 'recentFines', 'damagedItems'));
+    // Fetch transfer requests
+    $transferRequests = DB::table('transfer_requests')
+        ->join('media', 'transfer_requests.media_id', '=', 'media.id')
+        ->join('branches as from_branch', 'transfer_requests.from_branch_id', '=', 'from_branch.id')
+        ->join('branches as to_branch', 'transfer_requests.to_branch_id', '=', 'to_branch.id')
+        ->select(
+            'transfer_requests.id',
+            'transfer_requests.status',
+            'transfer_requests.created_at',
+            'media.title as media_title',
+            'from_branch.name as from_branch_name',
+            'to_branch.name as to_branch_name'
+        )
+        ->where(function ($query) use ($user) {
+            $query->where('from_branch_id', $user->branch_id)
+                  ->orWhere('to_branch_id', $user->branch_id);
+        })
+        ->orderBy('transfer_requests.created_at', 'desc')
+        ->take(10)
+        ->get();
+
+        dd($transferRequests); // Add this line
+
+    return view('dashboard.librarian', compact(
+        'user',
+        'pendingReturns',
+        'recentFines',
+        'damagedItems',
+        'transferRequests'
+    ));
 }
+
 
 
 public function googleLineChart()
@@ -649,5 +707,43 @@ public function googleLineChart()
 
     return view('branch_profits', ['totalEarnings'=>$totalEarnings]);
 }
+
+public function processTransfer(Request $request)
+{
+    $request->validate([
+        'transfer_id' => 'required|exists:transfer_requests,id',
+        'action' => 'required|in:confirm,reject',
+        'transfer_notes' => 'nullable|string|max:1000',
+    ]);
+
+    try {
+        DB::beginTransaction();
+
+        $transfer = DB::table('transfer_requests')->where('id', $request->transfer_id)->first();
+
+        if (!$transfer) {
+            throw new \Exception('Transfer request not found.');
+        }
+
+        // Update the status of the transfer request based on the action
+        $status = $request->action === 'confirm' ? 'approved' : 'rejected';
+
+        DB::table('transfer_requests')
+            ->where('id', $request->transfer_id)
+            ->update([
+                'status' => $status,
+                'notes' => $request->transfer_notes,
+                'updated_at' => now(),
+            ]);
+
+        DB::commit();
+
+        return redirect()->back()->with('success', 'Transfer request processed successfully.');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->back()->with('error', 'Failed to process transfer request: ' . $e->getMessage());
+    }
+}
+
 
 }

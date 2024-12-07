@@ -105,25 +105,29 @@ class MediaController extends Controller
 
     // View borrowed items
     public function borrowed()
-{
-    $activeLoans = DB::table('loans')
-        ->join('media', 'loans.media_id', '=', 'media.id') // Ensure the media table is joined
-        ->join('branches', 'loans.branch_id', '=', 'branches.id')
-        ->where('loans.user_id', Auth::id())
-        ->where('loans.status', 'active') // Fetch only active loans
-        ->select(
-            'media.id as media_id', 
-            'media.title', 
-            'media.author',
-            'loans.borrowed_date', 
-            'loans.due_date', 
-            'loans.id as loan_id',
-            'branches.name as branch_name'
-        )
-        ->get();
-
-    return view('borrowed', compact('activeLoans'));
-}
+    {
+        $activeLoans = DB::table('loans')
+            ->join('media', 'loans.media_id', '=', 'media.id')
+            ->join('branches', 'loans.branch_id', '=', 'branches.id')
+            ->where('loans.user_id', Auth::id())
+            ->where('loans.status', 'active')
+            ->select(
+                'media.id as media_id',
+                'media.title',
+                'media.author',
+                'loans.borrowed_date',
+                'loans.due_date',
+                'loans.id as loan_id',
+                'branches.name as branch_name'
+            )
+            ->get();
+    
+        // Fetch branches to populate the dropdown
+        $branches = DB::table('branches')->select('id', 'name')->get();
+    
+        return view('borrowed', compact('activeLoans', 'branches'));
+    }
+    
 
 
     // Wishlist functionality
@@ -215,18 +219,26 @@ public function wishlist()
    
 // In MediaController.php
 
-public function return($id)
+public function return($id, Request $request)
 {
-    
     $loan = DB::table('loans')
-        ->where('id', $id)
-        ->where('user_id', Auth::id())
-        ->where('status', 'active')
+        ->join('branches', 'loans.branch_id', '=', 'branches.id')
+        ->select('loans.*', 'branches.name as original_branch_name')
+        ->where('loans.id', $id)
+        ->where('loans.user_id', Auth::id())
+        ->where('loans.status', 'active')
         ->first();
       
     if (!$loan) {
-        return redirect()->back()->with('error', 'Loan record not found');
+        return response()->json([
+            'success' => false,
+            'error' => 'Loan record not found'
+        ]);
     }
+
+    // Check if return branch is different from loan branch
+    $return_branch_id = $request->branch_id;
+    $is_different_branch = $return_branch_id != $loan->branch_id;
 
     DB::beginTransaction();
 
@@ -239,23 +251,53 @@ public function return($id)
                 'returned_date' => now(),
             ]);
 
-        // Increment inventory quantity
-        DB::table('inventory')
-            ->where('media_id', $loan->media_id)
-            ->where('branch_id', $loan->branch_id)
-            ->increment('quantity');
+        // If returning to a different branch
+        if ($is_different_branch) {
+            // Create transfer request
+            DB::table('transfer_requests')->insert([
+                'media_id' => $loan->media_id,
+                'from_branch_id' => $return_branch_id,
+                'to_branch_id' => $loan->branch_id,
+                'status' => 'pending',
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
 
-        // Add the new code HERE, after incrementing inventory
+            // Update inventory for receiving branch
+            DB::table('inventory')
+                ->where('media_id', $loan->media_id)
+                ->where('branch_id', $return_branch_id)
+                ->increment('quantity');
+
+            // Get branch names for message
+            $return_branch = DB::table('branches')
+                ->where('id', $return_branch_id)
+                ->first();
+
+            $message = sprintf(
+                'Item returned successfully to %s. A transfer request has been created to return the item to its original branch (%s).',
+                $return_branch->name,
+                $loan->original_branch_name
+            );
+        } else {
+            // Regular return - update original branch inventory
+            DB::table('inventory')
+                ->where('media_id', $loan->media_id)
+                ->where('branch_id', $loan->branch_id)
+                ->increment('quantity');
+
+            $message = 'Item returned successfully.';
+        }
+
+        // Handle wishlist notifications
         $updatedQuantity = DB::table('inventory')
             ->where('media_id', $loan->media_id)
-            ->where('branch_id', $loan->branch_id)
+            ->where('branch_id', $is_different_branch ? $return_branch_id : $loan->branch_id)
             ->value('quantity');
 
-        if($updatedQuantity > 0) {  // If item is now in stock
-            // Get the media title
+        if($updatedQuantity > 0) {
             $media = DB::table('media')->where('id', $loan->media_id)->first();
             
-            // Check for users who want to be notified
             $wishlistUsers = DB::table('wishlists')
                 ->join('users', 'wishlists.user_id', '=', 'users.id')
                 ->where('wishlists.media_id', $loan->media_id)
@@ -263,28 +305,42 @@ public function return($id)
                 ->get();
 
             foreach($wishlistUsers as $wishlistUser) {
-                Mail::raw("Good news! '{$media->title}' is now available at the library.", function ($message) use ($wishlistUser) {
-                    $message->to($wishlistUser->email)
-                            ->subject('Wishlist Item Now Available');
-                });
+                Mail::raw(
+                    sprintf(
+                        "Good news! '%s' is now available at %s.", 
+                        $media->title,
+                        $is_different_branch ? $return_branch->name : $loan->original_branch_name
+                    ),
+                    function ($message) use ($wishlistUser) {
+                        $message->to($wishlistUser->email)
+                                ->subject('Wishlist Item Now Available');
+                    }
+                );
             }
         }
 
-        // Send email to the user who returned the item
+        // Send return confirmation email
         $user = Auth::user();
-        Mail::raw('Your book has been successfully returned.', function ($message) use ($user) {
+        Mail::raw($message, function ($message) use ($user) {
             $message->to($user->email)
                     ->subject('Book Return Confirmation');
         });
 
         DB::commit();
-        return redirect()->back()->with('success', 'Item returned successfully, and an email confirmation has been sent.');
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'isDifferentBranch' => $is_different_branch
+        ]);
+
     } catch (\Exception $e) {
         DB::rollBack();
-        return redirect()->back()->with('error', 'Failed to return item');
+        return response()->json([
+            'success' => false,
+            'error' => 'Failed to return item: ' . $e->getMessage()
+        ]);
     }
 }
-
 
 public function showReturnForm($id)
 {

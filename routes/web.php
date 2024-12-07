@@ -86,6 +86,10 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/wishlist/request-media', [MediaController::class, 'requestMedia'])->name('wishlist.requestMedia');
 
+    Route::post('/return/{id}/process', [DashboardController::class, 'processReturn'])->name('return.process');
+Route::post('/transfers/process', [DashboardController::class, 'processTransfer'])->name('transfers.process');
+
+
 
 });
     // Media routes
