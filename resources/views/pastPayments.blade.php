@@ -23,6 +23,32 @@
             </nav>
         </div>
     </header>
-    <body>
 <div>
 </head>
+<body>
+<div>
+<h1>Previous payments</h1>
+
+<table>
+<tr>
+    <td>Subscription ID</td>
+    <td>User ID</td>
+    <td>Plan Type</td>
+    <td>Amount</td>
+    <td>Date Paid</td>
+</tr>
+<tr>
+    @foreach($payments as $item)
+    <td>{{$item->subscription_id}}</td>
+    <td>{{$item->user_id}}</td>
+    <td>{{$item->plan_type}}</td>
+    <td>{{$item->amount}}</td>
+    <td>{{$item->date_paid}}</td>
+</tr>
+
+@endforeach
+</table>
+<div>
+<button class="action-btn" onclick="history.back()">Go Back</button>
+</div>
+</body>
