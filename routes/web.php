@@ -57,10 +57,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/procurement', [DashboardController::class, 'storeProcurement'])->name('procurement.store');
     Route::get('/viewProcurements', [DashboardController::class, 'viewProcurements'])->name('viewProcurements');
 
-    //gets user id passed when form is submitted
-    Route::get('/subscription/{id}/{name}', [SubscriptionController::class, 'showUser']) -> name('subscription.showUser');
-    Route::post('/subscription/{id}', [SubscriptionController::class, 'updateSubscription']) -> name('subscription.updateSubscription');
 
+    Route::post('/subscription/{id}', [SubscriptionController::class, 'updateSubscription']) -> name('subscription.updateSubscription');
+    Route::get('/subscription/{id}/{name}', [SubscriptionController::class, 'showUser']) -> name('subscription.showUser');
+    Route::get('/subscription/{id}', [SubscriptionController::class, 'showPastPayments']) ->name('subscription.showPastPayments');
+
+    
 
     
     Route::post('/media/notify', [MediaController::class, 'notifyManager'])->name('media.notify');
