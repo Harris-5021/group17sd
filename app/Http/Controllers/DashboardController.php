@@ -559,10 +559,11 @@ public function processReturn(Request $request)
         // Validate input
         $request->validate([
             'loan_id' => 'required|exists:loans,id',
-            'damage_notes' => 'nullable|string',
+            'damage_notes' => 'nullable|string|max:1000',
             'fine_amount' => 'nullable|numeric|min:0',
         ]);
 
+        // Fetch the loan record
         $loan = DB::table('loans')->where('id', $request->loan_id)->first();
 
         if (!$loan) {
@@ -576,25 +577,30 @@ public function processReturn(Request $request)
         DB::table('loans')
             ->where('id', $request->loan_id)
             ->update([
-                'status' => 'processed',
+                'status' => $request->damage_notes ? 'damaged' : 'processed',
                 'damage_notes' => $request->damage_notes,
+                'returned_date' => now(), // Add a return timestamp
             ]);
 
-        // If fine amount is specified, add a fine
+        // If a fine amount is provided, add a fine record
         if ($request->fine_amount > 0) {
             DB::table('fines')->insert([
                 'loan_id' => $loan->id,
                 'user_id' => $loan->user_id,
                 'amount' => $request->fine_amount,
+                'reason' => $request->damage_notes ? 'damage' : 'other',
                 'status' => 'pending',
+                'due_date' => now()->addDays(30),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
 
-            // Send fine email notification
+            // Fetch the user details
             $user = DB::table('users')->where('id', $loan->user_id)->first();
+
+            // Send fine email notification
             Mail::raw(
-                "A fine of £{$request->fine_amount} has been added to your account for returned item.",
+                "Dear {$user->name},\n\nA fine of £{$request->fine_amount} has been added to your account for the following reason: " . ($request->damage_notes ? 'Damage to returned media' : 'Other reasons') . ".\n\nPlease pay the fine by " . now()->addDays(30)->format('d/m/Y') . " to avoid further penalties.\n\nRegards,\nYour Library Team",
                 function ($message) use ($user) {
                     $message->to($user->email)->subject('Library Fine Notification');
                 }
@@ -605,6 +611,7 @@ public function processReturn(Request $request)
             'success' => true,
             'message' => 'Return processed successfully.',
         ]);
+
     } catch (\Exception $e) {
         return response()->json([
             'success' => false,
@@ -612,6 +619,7 @@ public function processReturn(Request $request)
         ], 500);
     }
 }
+
 
 public function librarianDashboard()
 {

@@ -128,7 +128,8 @@
 <div id="processReturnModal" class="modal" style="display: none;">
     <div class="modal-content">
         <h2>Process Return</h2>
-        <form action="/return/process/{{ $return->id }}" method="POST" id="processReturnForm">
+        <form action="/return/process" method="POST" id="processReturnForm">
+
             @csrf
             <input type="hidden" name="loan_id" id="loan_id">
             
