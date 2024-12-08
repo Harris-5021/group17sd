@@ -18,7 +18,7 @@ class Media extends Model
         'publication_year',
         'status',
         'description',
-        'damaged_notes',
+        'damage_notes',
         'replacement_cost',
         'vendor_id',
         'procurement_cost',

@@ -320,29 +320,35 @@
         });
 
         fetch(`/return/${loanId}`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showNotification(data.message);
-                closeReturnModal();
-                setTimeout(() => {
-                    window.location.reload();
-                }, 3000);
-            } else {
-                throw new Error(data.error || 'An error occurred during return');
-            }
-        })
-        .catch(error => {
-            showNotification(error.message, 'error');
-        });
+    method: 'POST',
+    headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    },
+    body: JSON.stringify(data)
+})
+.then(response => {
+    console.log('Fetch response:', response);
+    return response.json(); // Parse the response JSON
+})
+.then(data => {
+    console.log('Parsed response data:', data);
+    if (data.success) {
+        showNotification(data.message);
+        closeReturnModal();
+        setTimeout(() => {
+            window.location.reload();
+        }, 3000);
+    } else {
+        throw new Error(data.error || 'An error occurred during return');
+    }
+})
+.catch(error => {
+    console.error('Error during return:', error); // Log error details
+    showNotification(error.message, 'error');
+});
+
     });
 
     // Close modal when clicking outside

@@ -90,7 +90,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/return/{id}/process', [DashboardController::class, 'processReturn'])->name('return.process');
 Route::post('/transfers/process', [DashboardController::class, 'processTransfer'])->name('transfers.process');
+Route::post('/return/{id}', [MediaController::class, 'return'])->name('return');
 
+Route::post('/return/process', [DashboardController::class, 'processReturn'])->name('return.process');
 
 
 });

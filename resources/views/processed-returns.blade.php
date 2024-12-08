@@ -46,7 +46,7 @@
                             <th>Member</th>
                             <th>Return Date</th>
                             <th>Status</th>
-                            <th>Damage Notes</th>
+                            <th>Damaged Notes</th>
                             <th>Actions</th>   <!-- New column header -->
                         </tr>
                     </thead>
@@ -58,7 +58,7 @@
                                 <td>{{ $return->user_name }}</td>
                                 <td>{{ \Carbon\Carbon::parse($return->returned_date)->format('d/m/Y') }}</td>
                                 <td>{{ $return->status }}</td>
-                                <td>{{ $return->damaged_notes ?? 'N/A' }}</td>
+                                <td>{{ $return->damage_notes ?? 'N/A' }}</td>
                                 <td>
                                     <button onclick="showProcessModal({{ $return->id }})" class="btn-process">
                                         Process
@@ -128,7 +128,7 @@
 <div id="processReturnModal" class="modal" style="display: none;">
     <div class="modal-content">
         <h2>Process Return</h2>
-        <form action="/return/process" method="POST" id="processReturnForm">
+        <form action="/return/process/{{ $return->id }}" method="POST" id="processReturnForm">
             @csrf
             <input type="hidden" name="loan_id" id="loan_id">
             

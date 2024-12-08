@@ -385,7 +385,7 @@ public function processReturn(Request $request)
                 ->where('id', $request->loan_id)
                 ->update([
                     'status' => 'damaged',
-                    'damaged_notes' => $request->damage_notes
+                    'damage_notes' => $request->damage_notes
                 ]);
         }
 
