@@ -17,6 +17,7 @@
             <nav>
                 <ul>
                     <li><a href="{{ route('dashboard.purchase_manager') }}">Create Procurements</a></li>
+                    <li><a href="{{ route('vendors.index') }}">Select Vendor</a></li>
                     <li><a href="{{ route('signout') }}">Sign Out</a></li>
                 </ul>
             </nav>
