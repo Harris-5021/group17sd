@@ -18,8 +18,9 @@
            <nav>
                <ul>
                    <li><a href="{{ route('viewProcurements') }}">Procurement Management</a></li>
-                   <li><a href="{{ route('signout') }}">Sign Out</a></li>
                    <li><a href="{{ route('vendors.index') }}">Select Vendor</a></li>
+                   <li><a href="{{ route('signout') }}">Sign Out</a></li>
+                   
 
                </ul>
            </nav>
