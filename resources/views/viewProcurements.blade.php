@@ -39,18 +39,30 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($procurements as $procurement)
-                    <tr>
-                        <td>{{ $procurement->media->title ?? 'N/A' }}</td>
-                        <td>{{ $procurement->procurement_date }}</td>
-                        <td>{{ ucfirst($procurement->procurement_type) }}</td>
-                        <td>{{ $procurement->supplier_name }}</td>
-                        <td>{{ $procurement->procurement_cost ? '$' . number_format($procurement->procurement_cost, 2) : 'N/A' }}</td>
-                        <td>{{ ucfirst($procurement->payment_status) }}</td>
-                        <td>{{ $procurement->branch_location }}</td>
-                    </tr>
-                @endforeach
-            </tbody>
+    @foreach($procurements as $procurement)
+        <tr>
+            <td>{{ $procurement->media->title ?? 'N/A' }}</td>
+            <td>{{ $procurement->procurement_date }}</td>
+            <td>{{ ucfirst($procurement->procurement_type) }}</td>
+            <td>{{ $procurement->supplier_name }}</td>
+            <td>{{ $procurement->procurement_cost ? '$' . number_format($procurement->procurement_cost, 2) : 'N/A' }}</td>
+            <td>
+            <form action="{{ route('procurement.updateStatus') }}" method="POST">
+    @csrf
+    <input type="hidden" name="procurement_id" value="{{ $procurement->procurement_id }}"> <!-- Hidden field for procurement_id -->
+    <select name="payment_status">
+        <option value="pending" {{ $procurement->payment_status == 'pending' ? 'selected' : '' }}>Pending</option>
+        <option value="paid" {{ $procurement->payment_status == 'paid' ? 'selected' : '' }}>Paid</option>
+    </select>
+    <button type="submit">Update Status</button>
+</form>
+
+            </td>
+            <td>{{ $procurement->branch_location }}</td>
+        </tr>
+    @endforeach
+</tbody>
+
         </table>
     </main>
 

@@ -10,6 +10,7 @@ class Procurement extends Model
     use HasFactory;
 
     protected $table = 'procurements';
+    protected $primaryKey = 'procurement_id';
 
     protected $fillable = [
         'media_id', // Reference to the media table

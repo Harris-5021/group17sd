@@ -127,4 +127,7 @@ Route::get('/vendors/{vendor}/media', [VendorController::class, 'showMedia'])->n
 Route::get('/vendors/create', [VendorController::class, 'create'])->name('vendors.create');
 Route::post('/vendors', [VendorController::class, 'store'])->name('vendors.store');
 
+Route::post('/procurements/update-status', [ProcurementController::class, 'updateStatus'])->name('procurement.updateStatus');
+
+
 
