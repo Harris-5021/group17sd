@@ -60,15 +60,15 @@ class SubscriptionController extends Controller
                 $subscription->end_date = $endDate;
             }
            
-            if($request['plan_type'] == 'basic')
+            if($request['plan_type'] == 'Basic')
             {
                 $subscription->amount = 25.99;
             }
-            elseif($request['plan_type'] == 'student')
+            elseif($request['plan_type'] == 'Student')
             {
                 $subscription->amount = 15.99;
             }
-            elseif($request['plan_type'] == 'premium')
+            elseif($request['plan_type'] == 'Premium')
             {
                 $subscription->amount = 35.99;
             }
@@ -78,7 +78,19 @@ class SubscriptionController extends Controller
             return redirect()->back()->with('success', 'Subscription updated successfully.');
         }
       
-
+        public function showPastPayments($user_id)
+        {
+            $payments = DB::table('payments')
+            ->join('users', 'payments.user_id', '=', 'users.id')
+            ->select('payments.*')
+            ->where('user_id', $user_id)
+            ->get();
+    
+            return view('pastPayments', 
+            ['payments' => $payments]);
+            
+        }
+     
    
     }
 

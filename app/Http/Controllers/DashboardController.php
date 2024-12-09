@@ -10,8 +10,11 @@ use App\Models\Media;
 use App\Models\Procurement;
 use App\Models\Inventory;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Log;
 class DashboardController extends Controller
 {
+    use HasFactory;
     public function index()
 {
    $user = Auth::user();
@@ -103,7 +106,37 @@ class DashboardController extends Controller
                 )
                 ->get();
         
-            return view('dashboard.librarian', compact('user', 'borrowedItems', 'wishlistItems', 'pendingReturns', 'recentFines', 'damagedItems'));
+            // Query for transfer requests
+            $transferRequests = DB::table('transfer_requests')
+                ->join('media', 'transfer_requests.media_id', '=', 'media.id')
+                ->join('branches as from_branch', 'transfer_requests.from_branch_id', '=', 'from_branch.id')
+                ->join('branches as to_branch', 'transfer_requests.to_branch_id', '=', 'to_branch.id')
+                ->select(
+                    'transfer_requests.id',
+                    'transfer_requests.status',
+                    'transfer_requests.created_at',
+                    'media.title as media_title',
+                    'from_branch.name as from_branch_name',
+                    'to_branch.name as to_branch_name'
+                )
+                ->where(function ($query) use ($user) {
+                    // Show transfers where the librarian's branch is either sender or receiver
+                    $query->where('from_branch_id', $user->branch_id)
+                          ->orWhere('to_branch_id', $user->branch_id);
+                })
+                ->orderBy('transfer_requests.created_at', 'desc')
+                ->take(10)
+                ->get();
+        
+            return view('dashboard.librarian', compact(
+                'user',
+                'borrowedItems',
+                'wishlistItems',
+                'pendingReturns',
+                'recentFines',
+                'damagedItems',
+                'transferRequests'
+            ));
         
            
        case 'member':
@@ -456,7 +489,7 @@ public function viewProcessedReturns()
             'loans.media_id',
             'loans.returned_date',
             'loans.status',
-            'loans.damaged_notes',
+            'loans.damage_notes',
             'media.title',
             'users.name as user_name'
         )
@@ -485,7 +518,7 @@ public function searchReturns(Request $request)
             'users.name as user_name',
             'loans.returned_date',
             'loans.status',
-            'loans.damaged_notes'
+            'loans.damage_notes'
         )
         ->orderBy('loans.returned_date', 'desc')
         ->paginate(15);
@@ -522,70 +555,77 @@ public function viewFines()
 
 public function processReturn(Request $request)
 {
-    $request->validate([
-        'return_id' => 'required|exists:loans,id',
-        'damage_notes' => 'nullable|string|max:1000',
-        'fine_amount' => 'nullable|numeric|min:0',
-        'status' => 'required|in:returned,damaged'
-    ]);
-
     try {
-        DB::beginTransaction();
+        // Validate input
+        $request->validate([
+            'loan_id' => 'required|exists:loans,id',
+            'damage_notes' => 'nullable|string|max:1000',
+            'fine_amount' => 'nullable|numeric|min:0',
+        ]);
 
-        $loan = DB::table('loans')->where('id', $request->return_id)->first();
-        
+        // Fetch the loan record
+        $loan = DB::table('loans')->where('id', $request->loan_id)->first();
+
         if (!$loan) {
-            throw new \Exception('Loan not found');
+            return response()->json([
+                'success' => false,
+                'error' => 'Loan record not found',
+            ], 404);
         }
 
-        // Update loan status
+        // Update loan status and damage notes
         DB::table('loans')
-            ->where('id', $request->return_id)
+            ->where('id', $request->loan_id)
             ->update([
-                'status' => $request->status,
-                'returned_date' => now(),
-                'damaged_notes' => $request->status === 'damaged' ? $request->damage_notes : null
+                'status' => $request->damage_notes ? 'damaged' : 'processed',
+                'damage_notes' => $request->damage_notes,
+                'returned_date' => now(), // Add a return timestamp
             ]);
 
-        // If there's a fine amount, create a fine record
+        // If a fine amount is provided, add a fine record
         if ($request->fine_amount > 0) {
             DB::table('fines')->insert([
                 'loan_id' => $loan->id,
                 'user_id' => $loan->user_id,
                 'amount' => $request->fine_amount,
-                'reason' => $request->status === 'damaged' ? 'damage' : 'overdue',
+                'reason' => $request->damage_notes ? 'damage' : 'other',
                 'status' => 'pending',
                 'due_date' => now()->addDays(30),
-                'created_at' => now()
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
+
+            // Fetch the user details
+            $user = DB::table('users')->where('id', $loan->user_id)->first();
+
+            // Send fine email notification
+            Mail::raw(
+                "Dear {$user->name},\n\nA fine of £{$request->fine_amount} has been added to your account for the following reason: " . ($request->damage_notes ? 'Damage to returned media' : 'Other reasons') . ".\n\nPlease pay the fine by " . now()->addDays(30)->format('d/m/Y') . " to avoid further penalties.\n\nRegards,\nYour Library Team",
+                function ($message) use ($user) {
+                    $message->to($user->email)->subject('Library Fine Notification');
+                }
+            );
         }
 
-        // Update media inventory
-        DB::table('inventory')
-            ->where('media_id', $loan->media_id)
-            ->where('branch_id', $loan->branch_id)
-            ->increment('quantity');
+        return response()->json([
+            'success' => true,
+            'message' => 'Return processed successfully.',
+        ]);
 
-        // If damaged, update media status
-        if ($request->status === 'damaged') {
-            DB::table('media')
-                ->where('id', $loan->media_id)
-                ->update(['status' => 'damaged']);
-        }
-
-        DB::commit();
-        return redirect()->back()->with('success', 'Return processed successfully');
     } catch (\Exception $e) {
-        DB::rollBack();
-        return redirect()->back()->with('error', 'Failed to process return: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'error' => 'Failed to process return: ' . $e->getMessage(),
+        ], 500);
     }
 }
+
 
 public function librarianDashboard()
 {
     $user = Auth::user();
 
-    // Query for pending returns
+    // Fetch pending returns
     $pendingReturns = DB::table('loans')
         ->join('users', 'loans.user_id', '=', 'users.id')
         ->join('media', 'loans.media_id', '=', 'media.id')
@@ -601,9 +641,8 @@ public function librarianDashboard()
         ->take(10)
         ->get();
 
-    // Query for recent fines
+    // Fetch recent fines
     $recentFines = DB::table('fines')
-        ->join('loans', 'fines.loan_id', '=', 'loans.id')
         ->join('users', 'fines.user_id', '=', 'users.id')
         ->select(
             'fines.loan_id',
@@ -616,7 +655,7 @@ public function librarianDashboard()
         ->take(10)
         ->get();
 
-    // Query for damaged items
+    // Fetch damaged items
     $damagedItems = DB::table('media')
         ->select(
             'id as media_id',
@@ -628,11 +667,113 @@ public function librarianDashboard()
         ->where('status', '=', 'damaged')
         ->get();
 
-    // Return the librarian dashboard view with the data
-    return view('dashboard.librarian', compact('user', 'pendingReturns', 'recentFines', 'damagedItems'));
+    // Fetch transfer requests
+    $transferRequests = DB::table('transfer_requests')
+        ->join('media', 'transfer_requests.media_id', '=', 'media.id')
+        ->join('branches as from_branch', 'transfer_requests.from_branch_id', '=', 'from_branch.id')
+        ->join('branches as to_branch', 'transfer_requests.to_branch_id', '=', 'to_branch.id')
+        ->select(
+            'transfer_requests.id',
+            'transfer_requests.status',
+            'transfer_requests.created_at',
+            'media.title as media_title',
+            'from_branch.name as from_branch_name',
+            'to_branch.name as to_branch_name'
+        )
+        ->where(function ($query) use ($user) {
+            $query->where('from_branch_id', $user->branch_id)
+                  ->orWhere('to_branch_id', $user->branch_id);
+        })
+        ->orderBy('transfer_requests.created_at', 'desc')
+        ->take(10)
+        ->get();
+
+        dd($transferRequests); // Add this line
+
+    return view('dashboard.librarian', compact(
+        'user',
+        'pendingReturns',
+        'recentFines',
+        'damagedItems',
+        'transferRequests'
+    ));
 }
 
 
 
+public function googleLineChart()
+{
+    $totalEarnings = DB::table('subscriptions')
+        ->join('users', 'subscriptions.user_id', '=', 'users.id')
+        ->join('branches', 'users.branch_id', '=', 'branches.id')
+        ->where('subscriptions.status', 'Active')
+        ->select('users.branch_id', 'branches.name AS branch_name', DB::raw('SUM(subscriptions.amount) AS total_earnings'))
+        ->groupBy('users.branch_id', 'branches.name')
+        ->get();
 
+    
+
+    return view('branch_profits', ['totalEarnings'=>$totalEarnings]);
+}
+
+public function processTransfer(Request $request)
+{
+    $request->validate([
+        'transfer_id' => 'required|exists:transfer_requests,id',
+        'action' => 'required|in:confirm,reject',
+        'transfer_notes' => 'nullable|string|max:1000',
+    ]);
+
+    try {
+        // Execute stored procedure
+        $result = DB::select(
+            'EXEC ProcessTransferRequest ?, ?, ?',
+            [
+                $request->transfer_id,
+                $request->action,
+                $request->transfer_notes ?? null
+            ]
+        );
+
+        // Check for errors from stored procedure
+        if (!empty($result) && isset($result[0]->ErrorNumber)) {
+            throw new \Exception($result[0]->ErrorMessage);
+        }
+
+        // Get transfer details for notification
+        $transfer = DB::table('transfer_requests')
+            ->join('media', 'transfer_requests.media_id', '=', 'media.id')
+            ->join('branches as from_branch', 'transfer_requests.from_branch_id', '=', 'from_branch.id')
+            ->join('branches as to_branch', 'transfer_requests.to_branch_id', '=', 'to_branch.id')
+            ->where('transfer_requests.id', $request->transfer_id)
+            ->select(
+                'media.title',
+                'from_branch.name as from_branch',
+                'to_branch.name as to_branch',
+                'to_branch.manager_id'
+            )
+            ->first();
+
+        // Send notification to receiving branch manager if approved
+        if ($request->action === 'confirm' && $transfer && $transfer->manager_id) {
+            DB::table('notifications')->insert([
+                'user_id' => $transfer->manager_id,
+                'type' => 'transfer',
+                'title' => 'Transfer Completed',
+                'message' => "Transfer of '{$transfer->title}' from {$transfer->from_branch} has been completed.",
+                'status' => 'unread',
+                'created_at' => now()
+            ]);
+        }
+
+        $message = $request->action === 'confirm' 
+            ? 'Transfer completed successfully.' 
+            : 'Transfer rejected.';
+
+        return redirect()->back()->with('success', $message);
+
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Failed to process transfer: ' . $e->getMessage());
+    }
+}
 }

@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Returns Management - AML Librarian Dashboard</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/accessibility-toolbar.css') }}">
 </head>
 <body>
     <header>
@@ -23,7 +22,7 @@
                 </ul>
             </nav>
             <div class="search">
-                <form action="{{ route('returns.search') }}" method="GET" class="search">
+                <form action="{{ route('returns.search') }}" method="GET">
                     <input type="text" name="query" placeholder="Search by member or media ID..." value="{{ request('query') }}">
                     <button type="submit">Search</button>
                 </form>
@@ -40,7 +39,7 @@
                 <h2>Pending Returns</h2>
                 <div class="returns-list">
                     @if($pendingReturns->count() > 0)
-                        <table class="returns-table">
+                        <table>
                             <thead>
                                 <tr>
                                     <th>Media ID</th>
@@ -75,7 +74,7 @@
                 <h2>Recent Fines</h2>
                 <div class="fines-list">
                     @if($recentFines->count() > 0)
-                        <table class="fines-table">
+                        <table>
                             <thead>
                                 <tr>
                                     <th>Loan ID</th>
@@ -103,12 +102,55 @@
                 </div>
             </div>
 
+            <!-- Transfer Requests Card -->
+            <div class="dashboard-card">
+                <h2>Transfer Requests</h2>
+                <div class="transfers-list">
+                    @if($transferRequests->count() > 0)
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Media Title</th>
+                                    <th>From Branch</th>
+                                    <th>To Branch</th>
+                                    <th>Status</th>
+                                    <th>Created Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($transferRequests as $transfer)
+                                    <tr>
+                                        <td>{{ $transfer->media_title }}</td>
+                                        <td>{{ $transfer->from_branch_name }}</td>
+                                        <td>{{ $transfer->to_branch_name }}</td>
+                                        <td>
+                                            <span class="status-badge {{ $transfer->status }}">
+                                                {{ ucfirst($transfer->status) }}
+                                            </span>
+                                        </td>
+                                        <td>{{ \Carbon\Carbon::parse($transfer->created_at)->format('d/m/Y') }}</td>
+                                        <td>
+                                            @if($transfer->status == 'pending')
+                                                <button onclick="showTransferModal({{ $transfer->id }})" class="btn-process">Process Transfer</button>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @else
+                        <p>No transfer requests</p>
+                    @endif
+                </div>
+            </div>
+
             <!-- Damaged Items Card -->
             <div class="dashboard-card">
                 <h2>Damaged Items</h2>
                 <div class="damaged-list">
                     @if($damagedItems->count() > 0)
-                        <table class="damaged-table">
+                        <table>
                             <thead>
                                 <tr>
                                     <th>Media ID</th>
@@ -139,193 +181,193 @@
     </main>
 
     <!-- Process Return Modal -->
-    <div id="processReturnModal" class="modal" style="display: none;">
+    <div id="processReturnModal" class="modal">
         <div class="modal-content">
             <h2>Process Return</h2>
-            <form action="{{ route('returns.process') }}" method="POST">
+            <form action="{{ route('returns.process', ['id' => '_ID_']) }}" method="POST" id="processReturnForm">
                 @csrf
-                <input type="hidden" name="return_id" id="return_id">
-                
                 <div class="form-group">
                     <label for="damage_notes">Damage Notes (if any):</label>
-                    <textarea name="damage_notes" id="damage_notes" rows="3"></textarea>
+                    <textarea name="damage_notes" id="damage_notes" class="form-control" rows="3"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="fine_amount">Fine Amount (if applicable):</label>
-                    <input type="number" name="fine_amount" id="fine_amount" step="0.01" min="0">
+                    <label for="fine_amount">Fine Amount (£):</label>
+                    <input type="number" name="fine_amount" id="fine_amount" step="0.01" min="0" value="0" class="form-control">
                 </div>
 
                 <div class="button-group">
-                    <button type="submit" name="status" value="approved" class="btn-approve">Process Return</button>
+                    <button type="submit" name="status" value="returned" class="btn-primary">Process Return</button>
                     <button type="submit" name="status" value="damaged" class="btn-damaged">Mark as Damaged</button>
-                    <button type="button" onclick="closeModal()" class="btn-cancel">Cancel</button>
+                    <button type="button" onclick="closeReturnModal()" class="btn-cancel">Cancel</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div class="accessibility-toolbar">
-        <button id="accessibilityToggle" class="toolbar-toggle">
-            <span class="icon">Aa</span>
-        </button>
-        <div id="toolbarPanel" class="toolbar-panel hidden">
-            <h3>Accessibility Options</h3>
-            <div class="toolbar-section">
-                <label>Text Size</label>
-                <div class="button-group">
-                    <button id="decreaseText">A-</button>
-                    <button id="increaseText">A+</button>
-                </div>
-            </div>
-            <div class="toolbar-section">
-                <label>Contrast</label>
-                <button id="toggleContrast">Toggle High Contrast</button>
-            </div>
-            <div class="toolbar-section">
-                <label>Text Weight</label>
-                <button id="toggleBold">Toggle Bold Text</button>
-            </div>
-        </div>
-    </div>
+    <style>
+        /* Base styles */
+        .dashboard-container {
+            padding: 20px;
+        }
 
-    <script src="{{ asset('js/accessibility-toolbar.js') }}"></script>
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 20px;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        /* Form styles */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        /* Button styles */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .btn-process {
+            background-color: #4169E1;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background-color: #008B8B;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-damaged {
+            background-color: #DC3545;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-cancel {
+            background-color: #6C757D;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Table styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f8f9fa;
+        }
+
+        /* Status badge styles */
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-badge.pending {
+            background-color: #FEF3C7;
+            color: #92400E;
+        }
+
+        .status-badge.approved {
+            background-color: #D1FAE5;
+            color: #065F46;
+        }
+    </style>
+
     <script>
         function showProcessModal(returnId) {
-            document.getElementById('return_id').value = returnId;
-            document.getElementById('processReturnModal').style.display = 'block';
+            const modal = document.getElementById('processReturnModal');
+            const form = document.getElementById('processReturnForm');
+            
+            // Update the form action with the correct ID
+            form.action = form.action.replace('_ID_', returnId);
+            
+            modal.style.display = 'block';
+            console.log('Opening modal for return ID:', returnId);
         }
 
-        function closeModal() {
-            document.getElementById('processReturnModal').style.display = 'none';
+        function closeReturnModal() {
+            const modal = document.getElementById('processReturnModal');
+            const form = document.getElementById('processReturnForm');
+            modal.style.display = 'none';
+            form.reset();
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('processReturnModal');
+            if (event.target === modal) {
+                closeReturnModal();
+            }
         }
     </script>
-    <!-- Add this modal HTML at the bottom of your librarian.blade.php before the closing body tag -->
-<div id="processReturnModal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <h2>Process Return</h2>
-        <form action="{{ route('return.process') }}" method="POST" id="processReturnForm">
-            @csrf
-            <input type="hidden" name="loan_id" id="loan_id">
-            
-            <div class="form-group">
-                <label for="damage_notes">Damage Notes (if any):</label>
-                <textarea name="damage_notes" id="damage_notes" class="form-control" rows="3"></textarea>
-            </div>
-
-            <div class="form-group">
-                <label for="fine_amount">Fine Amount (£):</label>
-                <input type="number" name="fine_amount" id="fine_amount" step="0.01" min="0" value="0" class="form-control">
-            </div>
-
-            <div class="button-group">
-                <button type="submit" class="btn-primary">Process Return</button>
-                <button type="button" onclick="closeModal()" class="btn-secondary">Cancel</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Add this CSS to style the modal -->
-<style>
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-}
-
-.modal-content {
-    background-color: white;
-    margin: 15% auto;
-    padding: 20px;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 500px;
-}
-
-.form-group {
-    margin-bottom: 1rem;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-}
-
-.form-control {
-    width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-.button-group {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1.5rem;
-}
-
-.btn-primary {
-    background-color: #007bff;
-    color: white;
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.btn-secondary {
-    background-color: #6c757d;
-    color: white;
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-/* Style status badges */
-.status-badge {
-    padding: 0.25rem 0.5rem;
-    border-radius: 9999px;
-    font-size: 0.875rem;
-}
-
-.status-badge.returned {
-    background-color: #d1fae5;
-    color: #065f46;
-}
-
-.status-badge.damaged {
-    background-color: #fee2e2;
-    color: #991b1b;
-}
-</style>
-
-<!-- Add this JavaScript -->
-<script>
-function showProcessModal(loanId) {
-    document.getElementById('loan_id').value = loanId;
-    document.getElementById('processReturnModal').style.display = 'block';
-}
-
-function closeModal() {
-    document.getElementById('processReturnModal').style.display = 'none';
-    document.getElementById('processReturnForm').reset();
-}
-
-// Close modal when clicking outside
-window.onclick = function(event) {
-    let modal = document.getElementById('processReturnModal');
-    if (event.target == modal) {
-        closeModal();
-    }
-}
-</script>
 </body>
 </html>

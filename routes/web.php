@@ -48,15 +48,21 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/librarian', [DashboardController::class, 'index'])->name('dashboard.librarian');
     Route::get('/dashboard/member', [DashboardController::class, 'index'])->name('dashboard.member');
     Route::get('/accountant', [DashboardController::class, 'searchUser'])->name('searchUser');
+    
+//Route for google chart to display profit of branches
+    Route::get('/branch_profits', [DashboardController::class, 'googleLineChart'])->name('branch_profits');
+
 
     Route::get('/purchase_manager', [DashboardController::class, 'showProcurementForm'])->name('purchase_manager.view');
     Route::post('/procurement', [DashboardController::class, 'storeProcurement'])->name('procurement.store');
     Route::get('/viewProcurements', [DashboardController::class, 'viewProcurements'])->name('viewProcurements');
 
-    //gets user id passed when form is submitted
-    Route::get('/subscription/{id}/{name}', [SubscriptionController::class, 'showUser']) -> name('subscription.showUser');
-    Route::post('/subscription/{id}', [SubscriptionController::class, 'updateSubscription']) -> name('subscription.updateSubscription');
 
+    Route::post('/subscription/{id}', [SubscriptionController::class, 'updateSubscription']) -> name('subscription.updateSubscription');
+    Route::get('/subscription/{id}/{name}', [SubscriptionController::class, 'showUser']) -> name('subscription.showUser');
+    Route::get('/subscription/{id}', [SubscriptionController::class, 'showPastPayments']) ->name('subscription.showPastPayments');
+
+    
 
     
     Route::post('/media/notify', [MediaController::class, 'notifyManager'])->name('media.notify');
@@ -81,6 +87,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/wishlist/notifications/update', [MediaController::class, 'updateNotificationPreferences'])->name('wishlist.updateNotifications');
 
     Route::post('/wishlist/request-media', [MediaController::class, 'requestMedia'])->name('wishlist.requestMedia');
+
+    Route::post('/return/{id}/process', [DashboardController::class, 'processReturn'])->name('return.process');
+Route::post('/transfers/process', [DashboardController::class, 'processTransfer'])->name('transfers.process');
+Route::post('/return/{id}', [MediaController::class, 'return'])->name('return');
+
+Route::post('/return/process', [DashboardController::class, 'processReturn'])->name('return.process');
 
 
 });
