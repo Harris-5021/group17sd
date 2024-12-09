@@ -71,16 +71,20 @@
 
                         <!-- Delivery Form -->
                         <form action="{{ route('delivery.request', $item->id) }}" method="POST" onsubmit="event.stopPropagation();" id="delivery-form-{{ $item->id }}">
-                            @csrf
-                            <h3>Request Delivery</h3>
-                            <label for="address">Delivery Address:</label>
-                            <input type="text" name="address" id="address-{{ $item->id }}" required placeholder="Enter your delivery address">
-                            
-                            <label for="delivery_date">Preferred Delivery Date:</label>
-                            <input type="date" name="delivery_date" id="delivery_date-{{ $item->id }}" required>
+    @csrf
+    <h3>Request Delivery</h3>
+    <label for="address">Delivery Address:</label>
+    <input type="text" name="address" id="address-{{ $item->id }}" required placeholder="Enter your delivery address">
 
-                            <button type="submit" class="delivery-btn">Request Delivery</button>
-                        </form>
+    <label for="delivery_date">Preferred Delivery Date:</label>
+    <input type="date" name="delivery_date" id="delivery_date-{{ $item->id }}" required>
+
+    <!-- Hidden branch_id field -->
+    <input type="hidden" name="branch_id" id="delivery-branch-{{ $item->id }}">
+
+    <button type="submit" class="delivery-btn">Request Delivery</button>
+</form>
+
                     @endif
                 </div>
             </div>
@@ -115,7 +119,10 @@ $(document).ready(function() {
     $('.branch-select').change(function() {
         var branchId = $(this).val();
         var mediaId = $(this).data('media-id');
-        
+
+        // Update the hidden branch_id field in the delivery form
+        $(`#delivery-branch-${mediaId}`).val(branchId);
+
         if(branchId) {
             $.ajax({
                 url: `/media/inventory/${mediaId}/${branchId}`,
@@ -146,6 +153,7 @@ $(document).ready(function() {
         }
     });
 });
+
 </script>
 
 </body>
