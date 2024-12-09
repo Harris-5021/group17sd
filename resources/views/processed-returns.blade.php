@@ -6,6 +6,7 @@
     <title>Processed Returns - AML</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/accessibility-toolbar.css') }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body>
     <header>
@@ -124,14 +125,14 @@
     </div>
 
     <script src="{{ asset('js/accessibility-toolbar.js') }}"></script>
-    <!-- Process Return Modal -->
-<div id="processReturnModal" class="modal" style="display: none;">
+  <!-- Process Return Modal -->
+<div id="processReturnModal" class="modal">
     <div class="modal-content">
         <h2>Process Return</h2>
-        <form action="/return/process" method="POST" id="processReturnForm">
-
+        <form id="processReturnForm" action="{{ route('return.process') }}" method="POST">
             @csrf
             <input type="hidden" name="loan_id" id="loan_id">
+            <input type="hidden" name="status" value="returned">
             
             <div class="form-group">
                 <label for="damage_notes">Damage Notes (if any):</label>
@@ -150,6 +151,50 @@
         </form>
     </div>
 </div>
+
+<script>
+document.getElementById('processReturnForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const url = this.getAttribute('action');
+    
+    fetch(url, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+    })
+    .then(data => {
+        closeModal();
+        window.location.reload();
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+function showProcessModal(loanId) {
+    document.getElementById('loan_id').value = loanId;
+    document.getElementById('processReturnModal').style.display = 'block';
+}
+
+function closeModal() {
+    document.getElementById('processReturnModal').style.display = 'none';
+    document.getElementById('processReturnForm').reset();
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('processReturnModal');
+    if (event.target === modal) {
+        closeModal();
+    }
+}
+</script>
 
 <style>
 .modal {
@@ -276,24 +321,6 @@
     </style>
 </style>
 
-<script>
-function showProcessModal(loanId) {
-    document.getElementById('loan_id').value = loanId;
-    document.getElementById('processReturnModal').style.display = 'block';
-}
 
-function closeModal() {
-    document.getElementById('processReturnModal').style.display = 'none';
-    document.getElementById('processReturnForm').reset();
-}
-
-// Close modal when clicking outside
-window.onclick = function(event) {
-    let modal = document.getElementById('processReturnModal');
-    if (event.target == modal) {
-        closeModal();
-    }
-}
-</script>
 </body>
 </html>
