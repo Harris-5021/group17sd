@@ -53,5 +53,9 @@
   <body>
     <h1>Total Earnings by Branch</h1>
     <div id="piechart_3d" style="width: 900px; height: 500px;"></div>
+
+    <div>
+<button class="action-btn" onclick="history.back()">Go Back</button>
+</div>
   </body>
 </html>
