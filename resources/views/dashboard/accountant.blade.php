@@ -7,6 +7,24 @@
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/accessibility-toolbar.css') }}">
     <style>
+    .center-search {
+            margin: 0px;
+            padding: 15px;
+            left: 30%; 
+            }
+    .btn {
+        margin: 0px;
+        position: absolute;
+        top: 35%;
+        left: 46%;
+        padding: 10px 15px;
+        background: #007bff;
+        color: white;
+        height: 70px;
+        width: 100px;
+        text-decoration: none;
+        border-radius: 4px;
+        }
     footer {
   text-align: left;
   padding-top: 30px;
@@ -33,7 +51,7 @@
 
     <main class="dashboard-container">
         <h1>Welcome, {{ $user->name }}!</h1>
-        <div class="center">
+        <div class="center-search">
                 <form action="{{ route('searchUser') }}" method="GET" class="searchUser" align: >
                     <input type="text" name="query" placeholder="Search Users..." value="{{ request('query') }}">
                     <button type="submit">&#128269;</button>
@@ -41,11 +59,15 @@
         </div>
 </main>
 
-<li><a href="{{ route('branch_profits') }}">See Branch Profits</a></li>
-
+<!--<button class = "btn" a href="{{ route('branch_profits') }}">See Branch Profits</button>-->
+<div>
+    <a href="{{ route('branch_profits') }}" class = "btn">View branch profits</a>
+</div>
 </body>
 
 <footer>
+   
+
 <div class="accessibility-toolbar">
     <button id="accessibilityToggle" class="toolbar-toggle">
         <span class="icon">Aa</span>
