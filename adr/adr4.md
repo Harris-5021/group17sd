@@ -2,9 +2,9 @@
 
 * Status: accepted
 * Date: 2024-11-17
-* Decision-Makers: Oliver Sennett-Neilson, Connor Bowen, Harris Fiaz
-* Consulted: Oliver Sennett-Neilson, Connor Bowen, Harris Fiaz
-* Informed: Oliver Sennett-Neilson, Connor Bowen, Harris Fiaz
+* Decision-Makers: Oliver Sennett-Neilson, Conner Bowen, Harris Fiaz
+* Consulted: Oliver Sennett-Neilson, Conner Bowen, Harris Fiaz
+* Informed: Oliver Sennett-Neilson, Conner Bowen, Harris Fiaz
 
 ## Context and Problem Statement
 

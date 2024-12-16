@@ -3,8 +3,8 @@
 * Status: accepted
 * Date: 2025-10-24
 * Decision-Makers: Oliver Sennett-Neilson, Harris Fiaz, Conner Bowen
-* Consulted: Add names of subject-matter experts, e.g., software architects, backend developers
-* Informed: Add names of stakeholders, e.g., project sponsors, team leads
+* Consulted: Oliver Sennett-Neilson, Harris Fiaz, Conner Bowen
+* Informed: Oliver Sennett-Neilson, Harris Fiaz, Conner Bowen
 
 ## Context and Problem Statement
 
