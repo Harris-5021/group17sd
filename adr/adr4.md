@@ -1,74 +1,93 @@
----
-# These are optional metadata elements. Feel free to remove any of them.
-status: "{proposed | rejected | accepted | deprecated | … | superseded by ADR-0123"
-date: {YYYY-MM-DD when the decision was last updated}
-decision-makers: {list everyone involved in the decision}
-consulted: {list everyone whose opinions are sought (typically subject-matter experts); and with whom there is a two-way communication}
-informed: {list everyone who is kept up-to-date on progress; and with whom there is a one-way communication}
----
+# Selection of Hashing Algorithm Architectural Decision Record
 
-# {short title, representative of solved problem and found solution}
-PHP Frameworks Architectural Decision Record
+* Status: accepted
+* Date: 2024-11-17
+* Decision-Makers: Oliver Sennett-Neilson, Connor Bowen, Harris Fiaz
+* Consulted: Oliver Sennett-Neilson, Connor Bowen, Harris Fiaz
+* Informed: Oliver Sennett-Neilson, Connor Bowen, Harris Fiaz
+
 ## Context and Problem Statement
 
-{Describe the context and problem statement, e.g., in free form using two to three sentences or in the form of an illustrative story. You may want to articulate the problem in form of a question and add links to collaboration boards or issue management systems.}
+AML requires a secure mechanism to handle sensitive user data, such as passwords. Hashing is essential to ensure password confidentiality, even if the database is compromised. Laravel's built-in hashing mechanism provides support for secure password storage and validation. To determine the most suitable hashing algorithm for this project, we must evaluate Laravel's default option (Bcrypt) and potential alternatives.
 
-<!-- This is an optional element. Feel free to remove. -->
 ## Decision Drivers
 
-* {decision driver 1, e.g., a force, facing concern, …}
-* {decision driver 2, e.g., a force, facing concern, …}
-* … <!-- numbers of drivers can vary -->
+* Security: Protection against brute force, rainbow table, and dictionary attacks.
+* Performance: Efficient hashing for a high number of user accounts and concurrent logins.
+* Ease of Use: Compatibility with Laravel's authentication ecosystem.
+* Future Proofing: Flexibility to adapt to evolving cryptographic standards.
 
 ## Considered Options
 
-* {title of option 1}
-* {title of option 2}
-* {title of option 3}
-* … <!-- numbers of options can vary -->
+### 1. Bcrypt (Laravel Default)
+* Key derivation function designed for password hashing.
+* Incorporates a computational cost factor, adjustable for future security needs.
+* Supported natively in Laravel.
+
+### 2. Argon2
+* Winner of the Password Hashing Competition (PHC).
+* Provides memory-hard hashing to prevent brute-force attacks with hardware like GPUs.
+* Supported in Laravel as an alternative to Bcrypt.
+
+### 3. SHA-256/512 with Salt
+* General-purpose cryptographic hash functions.
+* Requires additional implementation to incorporate salt and ensure password security.
+* Less ideal for password hashing compared to dedicated algorithms like Bcrypt or Argon2.
 
 ## Decision Outcome
 
-Chosen option: "{title of option 1}", because {justification. e.g., only option, which meets k.o. criterion decision driver | which resolves force {force} | … | comes out best (see below)}.
+Chosen option: Bcrypt (Laravel Default)
 
-<!-- This is an optional element. Feel free to remove. -->
-### Consequences
+Justification:
+Bcrypt is an industry-standard hashing algorithm for passwords, providing strong protection against brute-force attacks. Its computational cost factor ensures that hashing can remain secure as computing power increases. Since Bcrypt is natively supported in Laravel's hashing facade, it minimizes development effort and integrates seamlessly with our authentication system.
 
-* Good, because {positive consequence, e.g., improvement of one or more desired qualities, …}
-* Bad, because {negative consequence, e.g., compromising one or more desired qualities, …}
-* … <!-- numbers of consequences can vary -->
+Although Argon2 offers advanced features, Bcrypt's established security record and compatibility make it a better fit for AML at this stage.
 
-<!-- This is an optional element. Feel free to remove. -->
-### Confirmation
+## Consequences
 
-{Describe how the implementation / compliance of the ADR can/will be confirmed. Is there any automated or manual fitness function? If so, list it and explain how it is applied. Is the chosen design and its implementation in line with the decision? E.g., a design/code review or a test with a library such as ArchUnit can help validate this. Note that although we classify this element as optional, it is included in many ADRs.}
+Good:
+* Strong protection against brute force and dictionary attacks.
+* Ease of integration with Laravel's built-in authentication system.
+* Adjustable cost factor to ensure long-term security.
 
-<!-- This is an optional element. Feel free to remove. -->
-## Pros and Cons of the Options
+Bad:
+* Memory-hard protections are less robust compared to Argon2.
+* Potential future migration if Argon2 or other algorithms become industry standards.
 
-### {title of option 1}
+## Confirmation
 
-<!-- This is an optional element. Feel free to remove. -->
-{example | description | pointer to more information | …}
+The implementation will be validated through:
+* Password Security Audits: Ensuring compliance with best practices.
+* Performance Testing: Evaluating hashing performance under peak loads.
+* Developer Feedback: Ensuring ease of use within the Laravel ecosystem.
+* Monitoring and Updates: Staying informed on cryptographic advancements.
 
-* Good, because {argument a}
-* Good, because {argument b}
-<!-- use "neutral" if the given argument weights neither for good nor bad -->
-* Neutral, because {argument c}
-* Bad, because {argument d}
-* … <!-- numbers of pros and cons can vary -->
+## Pros and Cons of Options
 
-### {title of other option}
+### Bcrypt
+* Good: Secure, well-established, and natively supported in Laravel.
+* Neutral: Higher computational cost than SHA-based solutions.
+* Bad: Less memory-hard than Argon2.
 
-{example | description | pointer to more information | …}
+### Argon2
+* Good: Advanced security with memory-hard protections.
+* Neutral: Slightly more complex to configure in Laravel.
+* Bad: Less widespread adoption compared to Bcrypt.
 
-* Good, because {argument a}
-* Good, because {argument b}
-* Neutral, because {argument c}
-* Bad, because {argument d}
-* …
+### SHA-256/512 with Salt
+* Good: Fast hashing and widely supported.
+* Neutral: Requires custom implementation for salting.
+* Bad: Not recommended for password hashing due to lack of computational cost factor.
 
-<!-- This is an optional element. Feel free to remove. -->
 ## More Information
 
-{You might want to provide additional evidence/confidence for the decision outcome here and/or document the team agreement on the decision and/or define when/how this decision the decision should be realized and if/when it should be re-visited. Links to other decisions and resources might appear here as well.}
+References:
+1. [https://laravel.com/docs/11.x/hashing#:~:text=By%20default%2C%20Laravel%20uses%20the%20bcrypt%20hashing%20driver%20when%20hashing%20data](https://laravel.com/docs/11.x/hashing#:~:text=By%20default%2C%20Laravel%20uses%20the%20bcrypt%20hashing%20driver%20when%20hashing%20data)
+2. [https://www.password-hashing.net/#:~:text=We%20recommend%20that%20you%20use,and%20reference%20code%20just%20below](https://www.password-hashing.net/#:~:text=We%20recommend%20that%20you%20use,and%20reference%20code%20just%20below)
+3. [https://www.blackduck.com/blog/cryptography-best-practices.html](https://www.blackduck.com/blog/cryptography-best-practices.html)
+
+Review:
+This choice will be revisited if:
+* Cryptographic vulnerabilities in Bcrypt are discovered.
+* Argon2 adoption increases significantly.
+* Project requirements demand stronger memory-hard protections.

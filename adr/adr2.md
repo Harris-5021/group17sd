@@ -1,74 +1,84 @@
----
-# These are optional metadata elements. Feel free to remove any of them.
-status: "{proposed | rejected | accepted | deprecated | … | superseded by ADR-0123"
-date: {YYYY-MM-DD when the decision was last updated}
-decision-makers: {list everyone involved in the decision}
-consulted: {list everyone whose opinions are sought (typically subject-matter experts); and with whom there is a two-way communication}
-informed: {list everyone who is kept up-to-date on progress; and with whom there is a one-way communication}
----
+# Architecture Style Architectural Decision Record
 
-# {short title, representative of solved problem and found solution}
-PHP Frameworks Architectural Decision Record
+* Status: accepted
+* Date: 2025-10-24
+* Decision-Makers: Oliver Sennett-Neilson, Harris Fiaz, Conner Bowen
+* Consulted: Add names of subject-matter experts, e.g., software architects, backend developers
+* Informed: Add names of stakeholders, e.g., project sponsors, team leads
+
 ## Context and Problem Statement
 
-{Describe the context and problem statement, e.g., in free form using two to three sentences or in the form of an illustrative story. You may want to articulate the problem in form of a question and add links to collaboration boards or issue management systems.}
+The Advanced Media Library (AML) system requires a scalable and maintainable web application to support a growing user base. The architecture must enable modular testing, scalability management, and data integrity, while efficiently handling concurrent requests from thousands of users.
 
-<!-- This is an optional element. Feel free to remove. -->
+Given these requirements, an architecture isolating application layers is necessary to improve performance, facilitate debugging, and enhance security. Three-tier architecture meets these needs by clearly separating the presentation, application logic, and data layers.
+
 ## Decision Drivers
 
-* {decision driver 1, e.g., a force, facing concern, …}
-* {decision driver 2, e.g., a force, facing concern, …}
-* … <!-- numbers of drivers can vary -->
+* Scalability: Each layer can be scaled independently, allowing the system to handle user growth and database expansion efficiently.
+* Isolated Testing: Separation of concerns enables testing of individual layers, streamlining debugging and reducing development time.
+* Data Integrity: Users interact only with the logic layer, minimizing risks to database integrity and improving security.
+* Performance Optimization: The logic tier processes user requests before database interaction, reducing direct load on the database.
+* Maintainability: Modular architecture simplifies updates and maintenance by isolating changes to specific layers.
 
 ## Considered Options
 
-* {title of option 1}
-* {title of option 2}
-* {title of option 3}
-* … <!-- numbers of options can vary -->
+### 1. Three-Tier Architecture
+* Presentation, logic, and data layers are separated to ensure modularity and scalability.
+
+### 2. Two-Tier Architecture
+* Combines logic and database tiers, simplifying design but limiting scalability and modularity.
+
+### 3. Microservices Architecture
+* Divides the system into independent services, each handling a specific function.
 
 ## Decision Outcome
 
-Chosen option: "{title of option 1}", because {justification. e.g., only option, which meets k.o. criterion decision driver | which resolves force {force} | … | comes out best (see below)}.
+Chosen option: Three-Tier Architecture
 
-<!-- This is an optional element. Feel free to remove. -->
-### Consequences
+Justification:
+Three-tier architecture balances complexity and scalability, making it ideal for AML's requirements. While microservices provide better scalability for enterprise-scale systems, their complexity introduces challenges for AML's timeline and team resources. Two-tier architecture, while simpler, falls short in scalability and testing, making it unsuitable for AML's anticipated user growth.
 
-* Good, because {positive consequence, e.g., improvement of one or more desired qualities, …}
-* Bad, because {negative consequence, e.g., compromising one or more desired qualities, …}
-* … <!-- numbers of consequences can vary -->
+Three-tier architecture supports independent scaling of layers, ensures better data integrity, and aligns with AML's goal of a scalable and maintainable solution.
 
-<!-- This is an optional element. Feel free to remove. -->
-### Confirmation
+## Consequences
 
-{Describe how the implementation / compliance of the ADR can/will be confirmed. Is there any automated or manual fitness function? If so, list it and explain how it is applied. Is the chosen design and its implementation in line with the decision? E.g., a design/code review or a test with a library such as ArchUnit can help validate this. Note that although we classify this element as optional, it is included in many ADRs.}
+Good:
+* Each layer can scale independently, improving scalability to meet yearly growth projections.
+* Modular architecture simplifies isolated testing, making debugging and development more efficient.
+* Better data security and integrity, as users do not directly interact with the database.
 
-<!-- This is an optional element. Feel free to remove. -->
+Bad:
+* More complex than two-tier architecture, potentially increasing workload during initial implementation.
+* Slightly longer processing times due to the additional logic layer.
+
+## Confirmation
+
+The implementation will be validated through:
+* Code Reviews: Regular reviews to ensure layer separation and adherence to architectural principles.
+* Load Testing: Verify scalability and responsiveness under anticipated peak loads.
+* Integration Testing: Confirm that layers interact seamlessly and maintain data consistency.
+
 ## Pros and Cons of the Options
 
-### {title of option 1}
+### Two-Tier Architecture
+Good:
+* Easier to implement for small to medium-sized systems.
 
-<!-- This is an optional element. Feel free to remove. -->
-{example | description | pointer to more information | …}
+Bad:
+* Limited scalability as direct user interaction with the database creates bottlenecks.
+* Less modular, making testing and updates more challenging.
 
-* Good, because {argument a}
-* Good, because {argument b}
-<!-- use "neutral" if the given argument weights neither for good nor bad -->
-* Neutral, because {argument c}
-* Bad, because {argument d}
-* … <!-- numbers of pros and cons can vary -->
+### Microservices Architecture
+Good:
+* Highly scalable due to independent services.
 
-### {title of other option}
+Bad:
+* Harder to maintain data consistency, as updates to one service may disrupt others.
+* Increased complexity, requiring more effort in integration testing and service orchestration.
 
-{example | description | pointer to more information | …}
-
-* Good, because {argument a}
-* Good, because {argument b}
-* Neutral, because {argument c}
-* Bad, because {argument d}
-* …
-
-<!-- This is an optional element. Feel free to remove. -->
 ## More Information
 
-{You might want to provide additional evidence/confidence for the decision outcome here and/or document the team agreement on the decision and/or define when/how this decision the decision should be realized and if/when it should be re-visited. Links to other decisions and resources might appear here as well.}
+References:
+1. [Three-Tier Architecture Overview](https://docs.aws.amazon.com/whitepapers/latest/serverless-multi-tier-architectures-api-gateway-lambda/three-tier-architecture-overview.html)
+2. [Comparison of Microservices and Monolithic Architectures](https://www.atlassian.com/microservices/microservices-architecture/microservices-vs-monolith)
+3. [Pros and Cons of Two-Tier Architecture](https://www.geeksforgeeks.org/difference-between-two-tier-and-three-tier-database-architecture/)

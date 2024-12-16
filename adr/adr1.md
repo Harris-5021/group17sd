@@ -1,74 +1,76 @@
----
-# These are optional metadata elements. Feel free to remove any of them.
-status: "{proposed | rejected | accepted | deprecated | … | superseded by ADR-0123"
-date: {YYYY-MM-DD when the decision was last updated}
-decision-makers: {list everyone involved in the decision}
-consulted: {list everyone whose opinions are sought (typically subject-matter experts); and with whom there is a two-way communication}
-informed: {list everyone who is kept up-to-date on progress; and with whom there is a one-way communication}
----
+# PHP Frameworks Architectural Decision Record
 
-# {short title, representative of solved problem and found solution}
-PHP Frameworks Architectural Decision Record
+* Status: accepted
+* Date: 2024-11-17 
+* Decision-Makers: Oliver Sennett-Neilson, Connor Bowen, Harris Fiaz
+* Consulted: Oliver Sennett-Neilson, Connor Bowen, Harris Fiaz
+* Informed: Oliver Sennett-Neilson, Connor Bowen, Harris Fiaz
+
 ## Context and Problem Statement
 
-{Describe the context and problem statement, e.g., in free form using two to three sentences or in the form of an illustrative story. You may want to articulate the problem in form of a question and add links to collaboration boards or issue management systems.}
+The Advanced Media Library (AML) system is required to allow users to search, borrow, and return media, manage accounts, and check branch availability for media. A robust and reliable framework for the web application is necessary to ensure scalability, performance, and maintainability.
 
-<!-- This is an optional element. Feel free to remove. -->
+After evaluating various options, Laravel and CodeIgniter emerged as the most suitable candidates for this project.
+
 ## Decision Drivers
 
-* {decision driver 1, e.g., a force, facing concern, …}
-* {decision driver 2, e.g., a force, facing concern, …}
-* … <!-- numbers of drivers can vary -->
+* Scalability: Support anticipated user growth with a scalable backend framework.
+* Authentication: Implement token-based authentication for improved performance and security.
+* Performance: Reduce server-side overhead with client-stored authentication tokens.
+* Maintainability: Use built-in tools and a modular structure to simplify debugging and future updates.
 
 ## Considered Options
 
-* {title of option 1}
-* {title of option 2}
-* {title of option 3}
-* … <!-- numbers of options can vary -->
+### 1. Laravel
+* Modern framework with MVC structure.
+* Built-in tools for routing, authentication, and database management.
+
+### 2. CodeIgniter
+* Lightweight framework with basic libraries.
+* Less feature-rich but simple and easy to use.
 
 ## Decision Outcome
 
-Chosen option: "{title of option 1}", because {justification. e.g., only option, which meets k.o. criterion decision driver | which resolves force {force} | … | comes out best (see below)}.
+Chosen option: Laravel
 
-<!-- This is an optional element. Feel free to remove. -->
-### Consequences
+Justification:
+Laravel's extensive built-in tools and scalability features make it ideal for a large-scale project like AML. Its compatibility with SQL and support for token authentication allows us to build a robust system with minimal redundant coding. While Laravel has a steeper learning curve, its modularity and strong community support mitigate this challenge, ensuring a long-term maintainable solution.
 
-* Good, because {positive consequence, e.g., improvement of one or more desired qualities, …}
-* Bad, because {negative consequence, e.g., compromising one or more desired qualities, …}
-* … <!-- numbers of consequences can vary -->
+## Consequences
 
-<!-- This is an optional element. Feel free to remove. -->
-### Confirmation
+Good:
+* Scalable architecture to handle anticipated user growth.
+* Enhanced performance with client-side token authentication.
+* Improved data security through built-in features like encryption and CSRF protection.
+* Modular design simplifies debugging and testing.
 
-{Describe how the implementation / compliance of the ADR can/will be confirmed. Is there any automated or manual fitness function? If so, list it and explain how it is applied. Is the chosen design and its implementation in line with the decision? E.g., a design/code review or a test with a library such as ArchUnit can help validate this. Note that although we classify this element as optional, it is included in many ADRs.}
+Bad:
+* Steeper learning curve for team members unfamiliar with Laravel.
+* Strict MVC structure may add complexity in the initial stages.
 
-<!-- This is an optional element. Feel free to remove. -->
+## Confirmation
+
+The implementation will be validated through:
+* Code Reviews: Ensure Laravel's features are used optimally.
+* Performance Testing: Verify scalability and load handling under peak conditions.
+* Security Audits: Confirm proper implementation of Laravel's authentication and security features.
+* Developer Feedback: Regular reviews to address challenges arising from the learning curve.
+
 ## Pros and Cons of the Options
 
-### {title of option 1}
+### Laravel
+* Good: Scalable, secure, and feature-rich with a large community and extensive documentation.
+* Neutral: Steeper learning curve mitigated by strong community support.
+* Bad: Heavier than lightweight frameworks like CodeIgniter.
 
-<!-- This is an optional element. Feel free to remove. -->
-{example | description | pointer to more information | …}
+### CodeIgniter
+* Good: Lightweight and fast, with minimal resource overhead.
+* Neutral: Limited features that can be extended with third-party libraries.
+* Bad: Lacks modular structure, making testing and scaling difficult.
 
-* Good, because {argument a}
-* Good, because {argument b}
-<!-- use "neutral" if the given argument weights neither for good nor bad -->
-* Neutral, because {argument c}
-* Bad, because {argument d}
-* … <!-- numbers of pros and cons can vary -->
-
-### {title of other option}
-
-{example | description | pointer to more information | …}
-
-* Good, because {argument a}
-* Good, because {argument b}
-* Neutral, because {argument c}
-* Bad, because {argument d}
-* …
-
-<!-- This is an optional element. Feel free to remove. -->
 ## More Information
 
-{You might want to provide additional evidence/confidence for the decision outcome here and/or document the team agreement on the decision and/or define when/how this decision the decision should be realized and if/when it should be re-visited. Links to other decisions and resources might appear here as well.}
+References:
+1. [Laravel Official Documentation](https://laravel.com/docs)
+2. [Comparison of Laravel and CodeIgniter](https://www.geeksforgeeks.org/difference-between-laravel-and-codeigniter/)
+3. [Token-Based Authentication in Laravel](https://laravel.com/docs/8.x/passport)
