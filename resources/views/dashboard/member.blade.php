@@ -163,5 +163,20 @@
         form.style.display = form.style.display === 'none' ? 'block' : 'none';
     }
     </script>
+<style>
+.branch-preference {
+    text-align: center;
+    margin: 15px 0;
+}
+
+.branch-preference p {
+    margin-bottom: 10px;
+}
+
+.action-btn {
+    display: block;
+    margin: 0 auto;
+}
+</style>
 </body>
 </html>
