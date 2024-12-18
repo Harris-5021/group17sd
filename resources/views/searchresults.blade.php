@@ -47,18 +47,26 @@
                         <p class="quantity">Copies available: {{ $item->quantity }}</p>
 
                         <div class="actions">
-                            @if($item->quantity > 0)
-                                <form action="{{ route('borrow', $item->id) }}" method="POST">
+                            @if(Auth::check())
+                                {{-- Show borrow and wishlist buttons for logged in users --}}
+                                @if($item->quantity > 0)
+                                    <form action="{{ route('borrow', $item->id) }}" method="POST">
+                                        @csrf
+                                        <input type="hidden" name="branch_id" value="{{ $item->branch_id }}">
+                                        <button type="submit" class="borrow-btn">Borrow</button>
+                                    </form>
+                                @endif
+                                
+                                <form action="{{ route('wishlist.add', $item->id) }}" method="POST">
                                     @csrf
-                                    <input type="hidden" name="branch_id" value="{{ $item->branch_id }}">
-                                    <button type="submit" class="borrow-btn">Borrow</button>
+                                    <button type="submit" class="wishlist-btn">Add to Wishlist</button>
                                 </form>
+                            @else
+                                {{-- Show login/register prompt for guests --}}
+                                <div class="guest-prompt">
+                                    <p>Please <a href="{{ route('login') }}">login</a> or <a href="{{ route('register-user') }}">register</a> to borrow this item or add it to your wishlist.</p>
+                                </div>
                             @endif
-                            
-                            <form action="{{ route('wishlist.add', $item->id) }}" method="POST">
-                                @csrf
-                                <button type="submit" class="wishlist-btn">Add to Wishlist</button>
-                            </form>
                         </div>
                     </div>
                 @endforeach

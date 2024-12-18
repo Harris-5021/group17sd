@@ -29,7 +29,7 @@ Route::post('login', [LoginController::class, 'customLogin'])->name('login.custo
 Route::get('register', [LoginController::class, 'registration'])->name('register-user');
 Route::post('register', [LoginController::class, 'customRegistration'])->name('register.custom');
 Route::get('signout', [LoginController::class, 'signOut'])->name('signout');
-
+Route::get('/search', [MediaController::class, 'search'])->name('search');
 // Protected routes (require authentication)
 Route::middleware(['auth'])->group(function () {
 
@@ -97,7 +97,7 @@ Route::post('/return/process', [DashboardController::class, 'processReturn'])->n
 
 });
     // Media routes
-    Route::get('/search', [MediaController::class, 'search'])->name('search');
+    
     Route::get('/browse', [MediaController::class, 'browse'])->name('browse');
     Route::get('/media/{id}', [MediaController::class, 'show'])->name('show');
     Route::get('/borrowed', [MediaController::class, 'borrowed'])->name('borrowed');
